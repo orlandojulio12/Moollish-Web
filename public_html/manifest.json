@@ -1,0 +1,47 @@
+{
+  "name": "Moollish - Gestión Ganadera",
+  "short_name": "Moollish",
+  "description": "Aplicación para gestión ganadera con soporte para funcionamiento sin conexión (offline).",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#e49b39",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/images/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "dir": "ltr",
+  "lang": "es-ES",
+  "scope": "/",
+  "serviceworker": {
+    "src": "/service-worker.js",
+    "scope": "/"
+  },
+  "categories": ["business", "productivity", "utilities"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Registrar Insumo",
+      "url": "/insumos/registrar",
+      "description": "Registrar un nuevo insumo"
+    },
+    {
+      "name": "Contenido Offline",
+      "url": "/offline-content",
+      "description": "Gestionar contenido disponible sin conexión"
+    }
+  ]
+}
