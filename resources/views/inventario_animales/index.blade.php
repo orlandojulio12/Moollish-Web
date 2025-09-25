@@ -1,15 +1,26 @@
 @extends('layouts')
 @section('template_title')
-    ficha animales
+ficha animales
 @endsection
 
 @section('styles')
 {{-- Ya no se necesitan estos estilos flotantes personalizados --}}
 {{-- <style>
-    .alert-floating { ... }
-    .alert-success-custom { ... }
-    .alert-danger-custom { ... }
-    .alert-warning-custom { ... }
+    .alert-floating {
+        ...
+    }
+
+    .alert-success-custom {
+        ...
+    }
+
+    .alert-danger-custom {
+        ...
+    }
+
+    .alert-warning-custom {
+        ...
+    }
 </style> --}}
 {{-- Estilos originales --}}
 <style>
@@ -45,7 +56,7 @@
         color: #6c757d !important;
     }
 
-    .title-modal-custom h4{
+    .title-modal-custom h4 {
         border-bottom: 1px solid #e5e7eb;
         padding: 0px 0px 20px 0px;
     }
@@ -154,13 +165,15 @@
         align-items: center;
         position: relative;
     }
-.mensaje-codigo {
-    color: green;
-    margin: 10px 0px;
-    border-radius: 4px;
-    padding: 0px 10px;
 
-}
+    .mensaje-codigo {
+        color: green;
+        margin: 10px 0px;
+        border-radius: 4px;
+        padding: 0px 10px;
+
+    }
+
     .input-group-custom .form-control {
         flex: 1;
         padding-right: 2.5rem;
@@ -195,18 +208,18 @@
 
     .form-error {
         margin: 20px 20px 0px;
-    padding: 10px;
-    background: #ff00001f;
-    color: darkred;
-    border-radius: 4px;
+        padding: 10px;
+        background: #ff00001f;
+        color: darkred;
+        border-radius: 4px;
     }
 
     .form-success {
         margin: 20px 20px 0px;
-    padding: 10px;
-    background: #00ff401f;
-    color: darkgreen;
-    border-radius: 4px;
+        padding: 10px;
+        background: #00ff401f;
+        color: darkgreen;
+        border-radius: 4px;
     }
 
 
@@ -313,846 +326,1052 @@
         text-decoration: underline;
 
     }
+</style>
+<style>
+.modal-lg {
+    max-width: 800px;
+}
 
+#filePreview {
+    border-left: 4px solid #0d6efd;
+}
+
+.table-responsive {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
 </style>
 @endsection
 @section('content')
 <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    {{-- Eliminar estas alertas flotantes estáticas --}}
-    {{-- <div class="alert-floating alert-success-custom" id="successAlert" style="display: none;">
-        <strong>¡Éxito!</strong> <span id="successMessage"></span>
+{{-- Eliminar estas alertas flotantes estáticas --}}
+{{-- <div class="alert-floating alert-success-custom" id="successAlert" style="display: none;">
+    <strong>¡Éxito!</strong> <span id="successMessage"></span>
+</div>
+<div class="alert-floating alert-danger-custom" id="errorAlert" style="display: none;">
+    <strong>Error:</strong> <span id="errorMessage"></span>
+</div>
+<div class="alert-floating alert-warning-custom" id="warningAlert" style="display: none;">
+    <strong>¡Advertencia!</strong> <span id="warningMessage"></span>
+</div> --}}
+
+<!--===================================================-->
+<div id="page-head">
+    @if (session('error'))
+    <div class="error-container">
+        <span class="error-icon material-symbols-outlined">
+            warning
+        </span>
+        <span class="error-alert">
+            {{ session('error') }}
+        </span>
     </div>
-    <div class="alert-floating alert-danger-custom" id="errorAlert" style="display: none;">
-        <strong>Error:</strong> <span id="errorMessage"></span>
+    @endif
+
+    @if (session('success'))
+    <div class="success-container">
+        <span class="success-icon material-symbols-outlined">
+            check_circle
+        </span>
+        <span class="success-alert">
+            {{ session('success') }}
+        </span>
     </div>
-    <div class="alert-floating alert-warning-custom" id="warningAlert" style="display: none;">
-        <strong>¡Advertencia!</strong> <span id="warningMessage"></span>
-    </div> --}}
+    @endif
 
-    <!--===================================================-->
-    <div id="page-head">
-        @if (session('error'))
-            <div class="error-container">
-                <span class="error-icon material-symbols-outlined">
-                    warning
-                </span>
-                <span class="error-alert">
-                    {{ session('error') }}
-                </span>
-            </div>
-        @endif
-
-        @if (session('success'))
-            <div class="success-container">
-                <span class="success-icon material-symbols-outlined">
-                    check_circle
-                </span>
-                <span class="success-alert">
-                    {{ session('success') }}
-                </span>
-            </div>
-        @endif
-
-        @if ($errors->any())
-            <div class="error-container">
-                <span class="error-icon material-symbols-outlined">
-                    warning
-                </span>
-                <span class="error-alert">
-                    Por favor corrige los siguientes errores:
-                    <ul>
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </span>
-            </div>
-        @endif
+    @if ($errors->any())
+    <div class="error-container">
+        <span class="error-icon material-symbols-outlined">
+            warning
+        </span>
+        <span class="error-alert">
+            Por favor corrige los siguientes errores:
+            <ul>
+                @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </span>
     </div>
+    @endif
+</div>
 
-    <!--===================================================-->
-    <div class="main-content">
-        <div class="row">
-            <div class="col-lg-12" style="padding: 0px !important">
-                <div class="card-custom">
-                    <div class="card-body p-0">
-                        <div class="header-grid">
-                            @if ($user->role->name === 'propietario')
-                                <div class="breadcrumb">
-                                    <a href="{{ route('inicio') }}">
-                                        <h3 class="cumb no-active-tab">
-                                            Inicio
-                                        </h3>
-                                    </a>
-                                    <span class="material-symbols-outlined bread">
-                                        chevron_forward
-                                    </span>
-                                    <a href="{{ route('registros') }}">
-                                        <h3 class="cumb no-active-tab">
-                                            Registros
-                                        </h3>
-                                    </a>
-                                    <span class="material-symbols-outlined bread">
-                                        chevron_forward
-                                    </span>
-                                    <a href="{{ route('animales') }}">
-                                        <h3 class="cumb no-active-tab">
-                                            Animales
-                                        </h3>
-                                    </a>
+<!--===================================================-->
+<div class="main-content">
+    <div class="row">
+        <div class="col-lg-12" style="padding: 0px !important">
+            <div class="card-custom">
+                <div class="card-body p-0">
+                    <div class="header-grid">
+                        @if ($user->role->name === 'propietario')
+                        <div class="breadcrumb">
+                            <a href="{{ route('inicio') }}">
+                                <h3 class="cumb no-active-tab">
+                                    Inicio
+                                </h3>
+                            </a>
+                            <span class="material-symbols-outlined bread">
+                                chevron_forward
+                            </span>
+                            <a href="{{ route('registros') }}">
+                                <h3 class="cumb no-active-tab">
+                                    Registros
+                                </h3>
+                            </a>
+                            <span class="material-symbols-outlined bread">
+                                chevron_forward
+                            </span>
+                            <a href="{{ route('animales') }}">
+                                <h3 class="cumb no-active-tab">
+                                    Animales
+                                </h3>
+                            </a>
 
-                                    <span class="material-symbols-outlined bread">
-                                        chevron_forward
-                                    </span>
-                                    <h3 class="cumb active-tab"> Ficha animal </h3>
-                                </div>
-                            @elseif ($user->role->name === 'admin')
-                                <h3>Administrar caracterizaciones</h3>
-                            @endif
-                            <hr>
-
-
-
+                            <span class="material-symbols-outlined bread">
+                                chevron_forward
+                            </span>
+                            <h3 class="cumb active-tab"> Ficha animal </h3>
                         </div>
-                        <div style="display: flex; justify-content: space-between;    align-items: flex-end;">
-                            <div style="width: 60%;">
-                                <label for="id_animal" class="form-label">Seleccione un animal <span style="color: red;">*</span></label>
-                                <input type="hidden" id="id_animal" name="codigo_animal" required>
+                        @elseif ($user->role->name === 'admin')
+                        <h3>Administrar caracterizaciones</h3>
+                        @endif
+                        <hr>
 
-                                <div class="input-dinamico-animal">
-                                    <div id="animalSeleccionado"></div>
-                                    <button type="button" class="buton-dinamico-animal" data-popup="{{ $nombre ?? 'id_animal' }}">                                        <span class="material-symbols-outlined">search</span>
-                                      </button>
-                                </div>
-                                @include('components.selector-animales', ['predios' => $predios, 'animales' => $animales])
 
+
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                        <div style="width: 60%;">
+                            <label for="id_animal" class="form-label">Seleccione un animal <span
+                                    style="color: red;">*</span></label>
+                            <input type="hidden" id="id_animal" name="codigo_animal" required>
+
+                            <div class="input-dinamico-animal">
+                                <div id="animalSeleccionado"></div>
+                                <button type="button" class="buton-dinamico-animal"
+                                    data-popup="{{ $nombre ?? 'id_animal' }}"> <span
+                                        class="material-symbols-outlined">search</span>
+                                </button>
                             </div>
-                            <div class="d-flex align-items-center">
-                                <div id="syncIndicator" style="display: none; margin-right: 15px;">
-                                    <button id="syncButton" class="btn btn-warning">
-                                        <span class="material-symbols-outlined">sync</span>
-                                        Sincronizar <span id="pendingCount" class="badge bg-danger">0</span>
-                                    </button>
-                                </div>
-                                <button id="openCreateAnimalModal" class="btn btn-primary" style="height: 42px; justify-self: end">
-                                <span class="material-symbols-outlined">
-                                    add
-                                </span> Crear animal
+                            @include('components.selector-animales', ['predios' => $predios, 'animales' => $animales])
+                        </div>
+
+                        {{-- Contenedor de botones modificado --}}
+                        <div class="d-flex align-items-center">
+                            <div id="syncIndicator" style="display: none; margin-right: 15px;">
+                                <button id="syncButton" class="btn btn-warning">
+                                    <span class="material-symbols-outlined">sync</span>
+                                    Sincronizar <span id="pendingCount" class="badge bg-danger">0</span>
+                                </button>
+                            </div>
+
+                            {{-- Botón para crear animal individual --}}
+                            <button id="openCreateAnimalModal" class="btn btn-success me-2" style="height: 42px;">
+                                <span class="material-symbols-outlined">add</span>
+                                Crear animal
+                            </button>
+
+                            {{-- Nuevo botón para importar desde Excel --}}
+                            <button id="openImportModal" class="btn btn-primary" style="height: 42px;">
+                                <span class="material-symbols-outlined">upload_file</span>
+                                Importar Excel
                             </button>
                         </div>
-                        </div>
+                    </div>
 
 
-                        <div class="container-ficha">
-                            <div class="modal-content">
-                                <div class="title-modal-custom">
-                                    <h4 class="" id="createFichaAnimalModalLabel">Datos de identificación</h4>
+                    <div class="container-ficha">
+                        <div class="modal-content">
+                            <div class="title-modal-custom">
+                                <h4 class="" id="createFichaAnimalModalLabel">Datos de identificación</h4>
+                            </div>
+                            <div class="d-flex space-b">
+                                <div class="form-group three-column-custom">
+                                    <label for="id_predio">ID Predio:</label>
+                                    <input disabled type="text" class="form-control" id="id_predio" name="id_predio"
+                                        required>
                                 </div>
-                                <div class="d-flex space-b">
-                                    <div class="form-group three-column-custom">
-                                        <label for="id_predio">ID Predio:</label>
-                                        <input disabled type="text" class="form-control" id="id_predio" name="id_predio"
-                                            required>
-                                    </div>
-                                    <div class="form-group three-column-custom">
-                                        <label for="identificacion_electronica">ID Electrónica:</label>
-                                        <input disabled type="text" class="form-control" id="identificacion_electronica"
-                                            name="identificacion_electronica" required>
-                                    </div>
-                                    <div class="form-group three-column-custom">
-                                        <label for="id_sinigan">ID Sinigan:</label>
-                                        <input disabled type="text" class="form-control" id="id_sinigan"
-                                            name="id_sinigan" required>
-                                    </div>
+                                <div class="form-group three-column-custom">
+                                    <label for="identificacion_electronica">ID Electrónica:</label>
+                                    <input disabled type="text" class="form-control" id="identificacion_electronica"
+                                        name="identificacion_electronica" required>
                                 </div>
-                                <div class="title-modal-custom">
-                                    <h4>Padres del animal</h4>
-                                </div>
-                                <div class="d-flex space-b">
-                                    <div class="form-group two-column-custom">
-                                        <label for="padre">Padre:</label>
-                                        <input disabled type="text" class="form-control" id="padre" name="padre">
-                                    </div>
-                                    <div class="form-group two-column-custom">
-                                        <label for="madre">Madre:</label>
-                                        <input disabled type="text" class="form-control" id="madre" name="madre">
-                                    </div>
-                                </div>
-                                <div class="d-flex space-b">
-                                    <div class="form-group two-column-custom">
-                                        <label for="raza_padre">Raza Padre:</label>
-                                        <input disabled type="text" class="form-control" id="raza_padre"
-                                            name="raza_padre">
-                                    </div>
-                                    <div class="form-group two-column-custom">
-                                        <label for="raza_madre">Raza Madre:</label>
-                                        <input disabled type="text" class="form-control" id="raza_madre"
-                                            name="raza_madre">
-                                    </div>
-                                </div>
-                                <div class="title-modal-custom">
-                                    <h4 class="title-with-link">Estados actuales</h4>
-                                </div>
-                                <div class="d-flex space-b">
-                                    <div class="form-group two-column-custom">
-                                        <label for="estado_reproductivo">Estado reproductivo:</label>
-                                        <input disabled type="text" class="form-control" id="estado_reproductivo"
-                                            name="estado_reproductivo">
-                                    </div>
-                                    <div class="form-group two-column-custom">
-                                        <label for="estado_productivo">Estado productivo:</label>
-                                        <input disabled type="text" class="form-control" id="estado_productivo"
-                                            name="estado_productivo">
-                                    </div>
-                                </div>
-                                <div class="d-flex space-b">
-                                    <div class="form-group two-column-custom">
-                                        <label for="ultimo_parto">Ultimo parto:</label>
-                                        <input disabled type="date" class="form-control" id="ultimo_parto"
-                                            name="ultimo_parto">
-
-                                    </div>
-                                    <div class="form-group two-column-custom">
-                                        <label for="fecha_fin">Ultimo secado:</label>
-                                        <input disabled type="date" class="form-control" id="fecha_fin"
-                                            name="fecha_fin">
-                                    </div>
-                                </div>
-                                <div class="title-modal-custom">
-                                    <h4 class="title-with-link">Ubicación <span class="link-add"
-                                            id="openCreateUbicacionModal"> Nueva ubicación <span
-                                                style="font-size: 12px;
-                                                margin: 0px 2px;"
-                                                class="material-symbols-outlined">
-                                                pin_drop
-                                            </span></span></h4>
-                                </div>
-                                <div class="d-flex space-b">
-                                    <div class="form-group two-column-custom">
-                                        <label for="lote">Lote:</label>
-                                        <input disabled type="text" class="form-control" id="lote"
-                                            name="lote">
-                                    </div>
-
-                                    <div class="form-group two-column-custom">
-                                        <label for="fecha_ubicacion">Fecha de ingreso al lote:</label>
-                                        <input disabled type="text" class="form-control" id="fecha_ubicacion_lote"
-                                            name="fecha_ubicacion_lote">
-                                    </div>
-                                </div>
-
-                                <div class="d-flex space-b">
-                                    <div class="form-group two-column-custom">
-                                        <label for="potrero">Potrero:</label>
-                                        <input disabled type="text" class="form-control" id="potrero"
-                                            name="potrero">
-                                    </div>
-                                    <div class="form-group two-column-custom">
-                                        <label for="fecha_ubicacion">Fecha de ingreso al potrero:</label>
-                                        <input disabled type="text" class="form-control" id="fecha_ubicacion_potrero"
-                                            name="fecha_ubicacion_potrero">
-                                    </div>
+                                <div class="form-group three-column-custom">
+                                    <label for="id_sinigan">ID Sinigan:</label>
+                                    <input disabled type="text" class="form-control" id="id_sinigan" name="id_sinigan"
+                                        required>
                                 </div>
                             </div>
-                            <div class="modal-content spacing">
-                                <form action="" method="POST">
-                                    @csrf
-                                    <div class="modal-body">
-                                        <div class="title-modal-custom">
-                                            <h4>Caracteristícas fenotípicas</h4>
-                                        </div>
-                                        <div class="d-flex space-b">
-                                            <div class="form-group three-column-custom" style="margin: 0px 5px 0px 0px;">
-                                                <label for="raza">Raza:</label>
-                                                <input disabled type="text" class="form-control" id="raza"
-                                                    name="raza">
-                                            </div>
-                                            <div class="form-group three-column-custom">
-                                                <label for="color">Color:</label>
-                                                <input disabled type="text" class="form-control" id="color"
-                                                    name="color" placeholder="blanco">
-                                            </div>
-                                            <div class="form-group three-column-custom">
-                                                <label for="hierro">Hierro:</label>
-                                                <input disabled type="text" class="form-control" id="hierro"
-                                                    name="hierro">
-                                            </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="nombre_animal">Nombre animal:</label>
-                                            <input disabled type="text" class="form-control" id="nombre_animal"
-                                                name="nombre_animal" placeholder="Nombre">
-                                        </div>
+                            <div class="title-modal-custom">
+                                <h4>Padres del animal</h4>
+                            </div>
+                            <div class="d-flex space-b">
+                                <div class="form-group two-column-custom">
+                                    <label for="padre">Padre:</label>
+                                    <input disabled type="text" class="form-control" id="padre" name="padre">
+                                </div>
+                                <div class="form-group two-column-custom">
+                                    <label for="madre">Madre:</label>
+                                    <input disabled type="text" class="form-control" id="madre" name="madre">
+                                </div>
+                            </div>
+                            <div class="d-flex space-b">
+                                <div class="form-group two-column-custom">
+                                    <label for="raza_padre">Raza Padre:</label>
+                                    <input disabled type="text" class="form-control" id="raza_padre" name="raza_padre">
+                                </div>
+                                <div class="form-group two-column-custom">
+                                    <label for="raza_madre">Raza Madre:</label>
+                                    <input disabled type="text" class="form-control" id="raza_madre" name="raza_madre">
+                                </div>
+                            </div>
+                            <div class="title-modal-custom">
+                                <h4 class="title-with-link">Estados actuales</h4>
+                            </div>
+                            <div class="d-flex space-b">
+                                <div class="form-group two-column-custom">
+                                    <label for="estado_reproductivo">Estado reproductivo:</label>
+                                    <input disabled type="text" class="form-control" id="estado_reproductivo"
+                                        name="estado_reproductivo">
+                                </div>
+                                <div class="form-group two-column-custom">
+                                    <label for="estado_productivo">Estado productivo:</label>
+                                    <input disabled type="text" class="form-control" id="estado_productivo"
+                                        name="estado_productivo">
+                                </div>
+                            </div>
+                            <div class="d-flex space-b">
+                                <div class="form-group two-column-custom">
+                                    <label for="ultimo_parto">Ultimo parto:</label>
+                                    <input disabled type="date" class="form-control" id="ultimo_parto"
+                                        name="ultimo_parto">
 
-                                        <div class="d-flex space-b">
-                                            <!-- Fecha de Nacimiento -->
-                                            <div class="form-group two-column-custom" style="margin: 0px 5px 0px 0px;">
-                                                <label for="fecha_nacimiento">Fecha de Nacimiento:</label>
-                                                <input disabled type="date" class="form-control" id="fecha_nacimiento"
-                                                    name="fecha_nacimiento">
-                                            </div>
+                                </div>
+                                <div class="form-group two-column-custom">
+                                    <label for="fecha_fin">Ultimo secado:</label>
+                                    <input disabled type="date" class="form-control" id="fecha_fin" name="fecha_fin">
+                                </div>
+                            </div>
+                            <div class="title-modal-custom">
+                                <h4 class="title-with-link">Ubicación <span class="link-add"
+                                        id="openCreateUbicacionModal"> Nueva ubicación <span style="font-size: 12px;
+                                                margin: 0px 2px;" class="material-symbols-outlined">
+                                            pin_drop
+                                        </span></span></h4>
+                            </div>
+                            <div class="d-flex space-b">
+                                <div class="form-group two-column-custom">
+                                    <label for="lote">Lote:</label>
+                                    <input disabled type="text" class="form-control" id="lote" name="lote">
+                                </div>
 
-                                            <!-- Años -->
-                                            <div class="form-group four-column-custom">
-                                                <label for="anos">Años:</label>
-                                                <input disabled type="number" class="form-control" id="anos"
-                                                    name="anos">
-                                            </div>
+                                <div class="form-group two-column-custom">
+                                    <label for="fecha_ubicacion">Fecha de ingreso al lote:</label>
+                                    <input disabled type="text" class="form-control" id="fecha_ubicacion_lote"
+                                        name="fecha_ubicacion_lote">
+                                </div>
+                            </div>
 
-                                            <!-- Meses -->
-                                            <div class="form-group four-column-custom">
-                                                <label for="meses">Meses:</label>
-                                                <input disabled type="number" class="form-control" id="meses"
-                                                    name="meses">
-                                            </div>
-
-                                            <!-- Días -->
-                                            <div class="form-group four-column-custom">
-                                                <label for="dias">Días:</label>
-                                                <input disabled type="number" class="form-control" id="dias"
-                                                    name="dias">
-                                            </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="sexo">Sexo:</label>
-                                            <select class="form-control" id="sexo" name="sexo" disabled>
-                                                <option value="">Seleccione</option>
-                                                <option value="macho">Macho</option>
-                                                <option value="hembra">Hembra</option>
-                                            </select>
-                                        </div>
-
-                                        <div class="form-group">
-                                            <label for="fecha_ingreso_hato">Fecha de Ingreso al Hato:</label>
-                                            <input disabled type="date" class="form-control" id="fecha_ingreso_hato">
-                                        </div>
-                                        <div class="title-modal-custom">
-                                            <h4 class="title-with-link">Pesos <span id="openCreatePesoModal"
-                                                    class="link-add">
-                                                    Registrar peso del animal <span
-                                                        style="    font-size: 12px;
-                                                margin: 0px 2px;"
-                                                        class="material-symbols-outlined">
-                                                        calendar_today
-                                                    </span></span></h4>
-                                        </div>
-                                        <div class="d-flex space-b">
-                                            <div class="form-group two-column-custom" style="margin: 0px 5px 0px 0px;">
-                                                <label for="ultimo_peso_fecha">Último Peso (Fecha):</label>
-                                                <input disabled type="date" class="form-control"
-                                                    id="ultimo_peso_fecha" name="ultimo_peso_fecha">
-                                            </div>
-                                            <div class="form-group two-column-custom">
-                                                <label for="ultimo_peso_cantidad">Último Peso (Kg):</label>
-                                                <input disabled type="number" class="form-control"
-                                                    id="ultimo_peso_cantidad" name="ultimo_peso_cantidad">
-                                            </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="ultimo_servicio">Último Servicio:</label>
-                                            <input disabled type="text" class="form-control" id="ultimo_servicio"
-                                                name="ultimo_servicio">
-                                        </div>
-                                    </div>
-
-                                </form>
+                            <div class="d-flex space-b">
+                                <div class="form-group two-column-custom">
+                                    <label for="potrero">Potrero:</label>
+                                    <input disabled type="text" class="form-control" id="potrero" name="potrero">
+                                </div>
+                                <div class="form-group two-column-custom">
+                                    <label for="fecha_ubicacion">Fecha de ingreso al potrero:</label>
+                                    <input disabled type="text" class="form-control" id="fecha_ubicacion_potrero"
+                                        name="fecha_ubicacion_potrero">
+                                </div>
                             </div>
                         </div>
-                        <div class="modal-footer-ficha padding-custom">
+                        <div class="modal-content spacing">
+                            <form action="" method="POST">
+                                @csrf
+                                <div class="modal-body">
+                                    <div class="title-modal-custom">
+                                        <h4>Caracteristícas fenotípicas</h4>
+                                    </div>
+                                    <div class="d-flex space-b">
+                                        <div class="form-group three-column-custom" style="margin: 0px 5px 0px 0px;">
+                                            <label for="raza">Raza:</label>
+                                            <input disabled type="text" class="form-control" id="raza" name="raza">
+                                        </div>
+                                        <div class="form-group three-column-custom">
+                                            <label for="color">Color:</label>
+                                            <input disabled type="text" class="form-control" id="color" name="color"
+                                                placeholder="blanco">
+                                        </div>
+                                        <div class="form-group three-column-custom">
+                                            <label for="hierro">Hierro:</label>
+                                            <input disabled type="text" class="form-control" id="hierro" name="hierro">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="nombre_animal">Nombre animal:</label>
+                                        <input disabled type="text" class="form-control" id="nombre_animal"
+                                            name="nombre_animal" placeholder="Nombre">
+                                    </div>
+
+                                    <div class="d-flex space-b">
+                                        <!-- Fecha de Nacimiento -->
+                                        <div class="form-group two-column-custom" style="margin: 0px 5px 0px 0px;">
+                                            <label for="fecha_nacimiento">Fecha de Nacimiento:</label>
+                                            <input disabled type="date" class="form-control" id="fecha_nacimiento"
+                                                name="fecha_nacimiento">
+                                        </div>
+
+                                        <!-- Años -->
+                                        <div class="form-group four-column-custom">
+                                            <label for="anos">Años:</label>
+                                            <input disabled type="number" class="form-control" id="anos" name="anos">
+                                        </div>
+
+                                        <!-- Meses -->
+                                        <div class="form-group four-column-custom">
+                                            <label for="meses">Meses:</label>
+                                            <input disabled type="number" class="form-control" id="meses" name="meses">
+                                        </div>
+
+                                        <!-- Días -->
+                                        <div class="form-group four-column-custom">
+                                            <label for="dias">Días:</label>
+                                            <input disabled type="number" class="form-control" id="dias" name="dias">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="sexo">Sexo:</label>
+                                        <select class="form-control" id="sexo" name="sexo" disabled>
+                                            <option value="">Seleccione</option>
+                                            <option value="macho">Macho</option>
+                                            <option value="hembra">Hembra</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="fecha_ingreso_hato">Fecha de Ingreso al Hato:</label>
+                                        <input disabled type="date" class="form-control" id="fecha_ingreso_hato">
+                                    </div>
+                                    <div class="title-modal-custom">
+                                        <h4 class="title-with-link">Pesos <span id="openCreatePesoModal"
+                                                class="link-add">
+                                                Registrar peso del animal <span style="    font-size: 12px;
+                                                margin: 0px 2px;" class="material-symbols-outlined">
+                                                    calendar_today
+                                                </span></span></h4>
+                                    </div>
+                                    <div class="d-flex space-b">
+                                        <div class="form-group two-column-custom" style="margin: 0px 5px 0px 0px;">
+                                            <label for="ultimo_peso_fecha">Último Peso (Fecha):</label>
+                                            <input disabled type="date" class="form-control" id="ultimo_peso_fecha"
+                                                name="ultimo_peso_fecha">
+                                        </div>
+                                        <div class="form-group two-column-custom">
+                                            <label for="ultimo_peso_cantidad">Último Peso (Kg):</label>
+                                            <input disabled type="number" class="form-control" id="ultimo_peso_cantidad"
+                                                name="ultimo_peso_cantidad">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="ultimo_servicio">Último Servicio:</label>
+                                        <input disabled type="text" class="form-control" id="ultimo_servicio"
+                                            name="ultimo_servicio">
+                                    </div>
+                                </div>
+
+                            </form>
                         </div>
+                    </div>
+                    <div class="modal-footer-ficha padding-custom">
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 @endsection
-
-    {{-- Modal para crear un animal --}}
-    <div class="modal fade" id="createAnimalModal" tabindex="-1" aria-labelledby="createAnimalModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="createAnimalModal">Registrar animal</h5>
-                    <span class="material-symbols-outlined closeCreateAnimalModal" id=""
-                        style="cursor: pointer;">
-                        close
-                    </span>
-                </div>
-                <span class="form-error" id="form-error" style="display: none;">
-                    <!-- El mensaje de error se mostrará aquí -->
-                </span>
-                <span class="form-success" id="form-success" style="display: none;">
-                    <!-- El mensaje de error se mostrará aquí -->
-                </span>
-
-                <form id="animalForm" action="javascript:void(0)" method="POST">
-                    @csrf
-                    <input type="hidden" name="bypass_service_worker" value="true">
-                    <div class="modal-body">
-                        <div class="d-flex space-b">
-                            <div class="form-group column-custom">
-                                <label for="nombre">Nombre del animal</label>
-                                <div class="input-group-custom">
-                                    <input type="text" class="form-control" id="nombre" name="nombre" >
-                                    <span class="input-icon material-symbols-outlined">sell</span>
-                                </div>
-                            </div>
-
-                            <div class="form-group four-column-custom">
-                                <label for="id_predio">Predio <span style="color: red;">*</span></label>
-                                <div class="input-group-custom">
-                                    <select class="form-control" id="id_predio_registrar" name="id_predio" required>
-                                        <option value="" disabled selected>Selecciona</option>
-                                        @foreach ($predios as $predio)
-                                            <option value="{{ $predio->id }}">{{ $predio->nombre_predio }}</option>
-                                        @endforeach
-                                    </select>
-                                    <span class="input-icon material-symbols-outlined">gite</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="d-flex space-b">
-                            <!-- Código -->
-                            <div class="form-group three-column-custom">
-                                <label for="codigo-edit">Código <span style="color: red;">*</span></label>
-                                <div class="input-group-custom">
-                                    <input type="text" class="form-control" id="codigo-edit" name="codigo" required>
-                                    <span class="input-icon material-symbols-outlined">tag</span>
-                                </div>
-                            </div>
-
-                            <div class="form-group three-column-custom">
-                                <label for="identificacion_electronica">ID Electrónica</label>
-                                <div class="input-group-custom">
-                                    <input type="text" class="form-control" id="identificacion_electronica"
-                                        name="identificacion_electronica">
-                                    <span class="input-icon material-symbols-outlined">vpn_key</span>
-                                </div>
-                            </div>
-
-                            <!-- ID SINIGAN -->
-                            <div class="form-group three-column-custom">
-                                <label for="id_sinigan">ID Sinigan</label>
-                                <div class="input-group-custom">
-                                    <input type="text" class="form-control" id="id_sinigan" name="id_sinigan">
-                                    <span class="input-icon material-symbols-outlined">pin</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mensaje-codigo" id="messagealert">
-
-                        </div>
-
-                        <div class="d-flex space-b">
-                            <div class="form-group two-column-custom">
-                                <label for="fecha_nacimiento-edit">Fecha de Nacimiento <span
-                                        style="color: red;">*</span></label>
-                                <input type="date" class="form-control" id="fecha_nacimiento_edit"
-                                    name="fecha_nacimiento" required>
-                            </div>
-
-                            <!-- Años -->
-                            <div class="form-group four-column-custom">
-                                <label for="anos">Años:</label>
-                                <input type="number" class="form-control" id="anos_edit" name="anos">
-                            </div>
-
-                            <!-- Meses -->
-                            <div class="form-group four-column-custom">
-                                <label for="meses">Meses:</label>
-                                <input type="number" class="form-control" id="meses_edit" name="meses">
-                            </div>
-
-                            <!-- Días -->
-                            <div class="form-group four-column-custom">
-                                <label for="dias">Días:</label>
-                                <input type="number" class="form-control" id="dias_edit" name="dias">
-                            </div>
-                        </div>
-
-                        <div class="d-flex space-b">
-                            <div class="form-group two-column-custom">
-                                <label for="sexo-edit">Sexo <span style="color: red;">*</span></label>
-                                <div class="input-group-custom">
-                                    <select class="form-control" id="sexo-edit" name="sexo" required>
-                                        <option value="" disabled selected>Selecciona</option>
-                                        <option value="macho">Macho</option>
-                                        <option value="hembra">Hembra</option>
-                                    </select>
-                                    <span class="input-icon material-symbols-outlined">female</span>
-                                </div>
-                            </div>
-
-                            <!-- Raza -->
-                            <div class="form-group two-column-custom">
-                                <label for="raza-id">Raza</label>
-                                <div class="input-group-custom">
-                                    <select class="form-control" id="raza-id" name="raza">
-                                        <option value="" disabled selected>Selecciona una raza</option>
-                                        @foreach ($razas as $raza)
-                                            <option value="{{ $raza->nombre_razas }}">{{ $raza->nombre_razas }}</option>
-                                        @endforeach
-                                    </select>
-                                    <span class="input-icon material-symbols-outlined">eco</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="d-flex space-b">
-                            <div class="form-group two-column-custom">
-                                <label for="color-edit">Color</label>
-                                <div class="input-group-custom">
-                                    <input type="text" class="form-control" id="color-edit" name="color">
-                                    <span class="input-icon material-symbols-outlined">palette</span>
-                                </div>
-                            </div>
-
-                            <!-- Hierro -->
-                            <div class="form-group two-column-custom">
-                                <label for="hierro-id">Hierro</label>
-                                <div class="input-group-custom">
-                                    <input type="number" class="form-control" id="hierro-id" name="hierro">
-                                    <span class="input-icon material-symbols-outlined">ev_shadow</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Estado productivo -->
-                        <div class="form-group">
-                            <label for="estado_productivo">Estado Productivo</label>
-                            <select class="form-control" id="estado_productivo" name="estado_productivo">
-                                <option value="" selected disabled>Selecciona</option>
-                                <option value="vaca_parida">Vaca Parida</option>
-                                <option value="vaca_seca">Vaca Seca</option>
-                                <option value="novilla_vientre">Novilla de Vientre</option>
-                                <option value="hembra_levante">Hembra de Levante</option>
-                                <option value="cria_hembra">Cría Hembra</option>
-                                <option value="reproductor_toro">Reproductor Toro</option>
-                                <option value="macho_ceba">Macho de Ceba</option>
-                                <option value="macho_levante">Macho de Levante</option>
-                                <option value="cria_macho">Cría Macho</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="fecha_ingreso_hato">Fecha ingreso hato</label>
-                            <input type="date" class="form-control" name="fecha_ingreso_hato" id="fecha_ingreso_hato">
-                        </div>
-                        <!-- Campos Parto -->
-                        <div id="partoFields" class="d-none">
-                            <div class="form-group">
-                                <label for="fecha_parto">Fecha de Parto <span style="color: red;">*</span></label>
-                                <input type="date" class="form-control" id="fecha_parto" name="fecha_parto">
-                            </div>
-                            <div class="form-group">
-                                <label for="tipo_parto">Tipo de Parto <span style="color: red;">*</span></label>
-                                <select class="form-control" id="tipo_parto" name="tipo_parto">
-                                    <option value="" selected disabled>Selecciona</option>
-                                    <option value="Parto">Parto</option>
-                                    <option value="Gemelar">Gemelar</option>
-                                    <option value="Trillizo">Trillizo</option>
-                                </select>
-                            </div>
-
-                            <!-- Crías -->
-                            <div id="criasContainer" class="mt-3">
-                                <div id="criasList"></div>
-                                <button type="button" id="addCriaBtn" class="btn btn-sm btn-success mt-2">Agregar
-                                    Cría</button>
-                            </div>
-                        </div>
-                        <div class="mt-3">
-                            <label for="animalIsCompra">
-                                <input type="checkbox" name="isComprado" id="animalIsCompra">
-                                Marcar como comprado
-                            </label>
-                        </div>
-                        <div id="compraFields" class="d-none">
-                            <div class="form-group">
-                                <label for="proveedor">Proveedor <span style="color: red;">*</span></label>
-                                <input type="text" class="form-control" id="proveedor" name="proveedor">
-                            </div>
-                            <div class="form-group">
-                                <label for="fechaCompra">Fecha sde Compra <span style="color: red;">*</span></label>
-                                <input type="date" class="form-control" id="fechaCompra" name="fechaCompra">
-                            </div>
-                            <div class="form-group">
-                                <label for="precioCompra">Precio de Compra <span style="color: red;">*</span></label>
-                                <input type="number" step="0.01" class="form-control" id="precioCompra"
-                                    name="precioCompra">
-                            </div>
-                        </div>
-                    </div>
-                      {{--   <button type="button" class="btn btn-secondary closeCreateAnimalModal">Cerrar</button>
-
-                    <button type="submit" class="btn btn-primary">Guardar</button>
-
- --}}
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary closeCreateAnimalModal">Cerrar</button>
-                        <button type="submit" class="btn btn-primary">Guardar</button>
-                    </div>
-                    {{-- <button type="submit" class="btn btn-primary">Guardar</button>
- --}}
-                </form>
+{{-- Modal de Importación de Excel (agregar antes del @endsection) --}}
+<div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="importModalLabel">
+                    <span class="material-symbols-outlined me-2">upload_file</span>
+                    Importar Animales desde Excel
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-        </div>
-    </div>
-
-    {{-- Modal para crear una nueva ubicacion --}}
-    <div class="modal fade" id="CreateUbicacionModal" tabindex="-1" aria-labelledby="CreateUbicacionModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3 class="modal-title" id="CreateUbicacionModal">Crear Ubicacion</h3>
-                    <span class="material-symbols-outlined closeCreateUbicacionModal" id=""
-                        style="cursor: pointer;">
-                        close
-                    </span>
+            <div class="modal-body">
+                {{-- Instrucciones --}}
+                <div class="alert alert-info" role="alert">
+                    <h6 class="fw-bold mb-2">📋 Instrucciones:</h6>
+                    <ul class="mb-0">
+                        <li>Descarga la plantilla de Excel haciendo clic en "Descargar Plantilla"</li>
+                        <li>Llena los datos de los animales en la plantilla</li>
+                        <li>Sube el archivo completado usando el formulario de abajo</li>
+                        <li>Los campos obligatorios son: <strong>sexo</strong></li>
+                        <li>Formato de fecha: YYYY-MM-DD (Ej: 2024-12-25)</li>
+                    </ul>
                 </div>
-                <form id="ubicacionForm" action="javascript:void(0)" method="POST">
+
+                {{-- Botón para descargar plantilla --}}
+                <div class="text-center mb-4">
+                    <a href="#" class="btn btn-success">
+                        <span class="material-symbols-outlined me-2">download</span>
+                        Descargar Plantilla Excel
+                    </a>
+                </div>
+
+                {{-- Formulario de importación --}}
+                <form id="importForm" action="#" method="POST" enctype="multipart/form-data">
                     @csrf
-                    <div class="modal-body">
-                        <h3 class="title-with-link"
-                            style="border-bottom: 1px solid lightgray;
-                        margin: 0px 0px 10px 0px;">
-                            Asignar
-                            animales </h3>
-                        <div class="form-group">
-                            <label for="codigo_animal_">Código Animal:</label>
-                            <select class="form-control" id="codigo_animal_" name="id_animal[]">
-                                <option disabled selected value="">Seleccionar</option>
-                                @foreach ($animales as $animal)
-                                    <option value="{{ $animal->id_animal }}">{{ $animal->codigo }}
+                    
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <label for="predio_id_import" class="form-label">Predio <span style="color: red;">*</span></label>
+                            <select class="form-control" name="predio_id" id="predio_id_import" required>
+                                <option value="">Seleccionar Predio</option>
+                                @foreach($predios as $predio)
+                                    <option value="{{ $predio->id }}">
+                                        {{ $predio->nombre_predio }} - {{ $predio->codigo ?? $predio->id }}
                                     </option>
                                 @endforeach
                             </select>
-
-                            <div class="selected-animals-container">
-                                <span class="no-selected">Selecciona un animal</span>
-                            </div>
                         </div>
-
-                        <h3 class="title-with-link"
-                            style="border-bottom: 1px solid lightgray;
-                        margin: 10px 0px;">
-                            Ubicación <button class="link-add" id="openCreateUbicacionModal">Asignar con ubicaciones
-                                existentes
-                                <span style="font-size: 12px;
-                        margin: 0px 2px;"
-                                    class="material-symbols-outlined">
-                                    pin_drop
-                                </span></button></h3>
-
-                        <div class="d-flex space-b">
-                            <!-- Lote Select -->
-                            <div class="form-group two-column-custom" style="margin: 0px 5px 0px 0px;">
-                                <label for="lote">Lote (opcional)</label>
-                                <div class="input-group-custom">
-                                    <select class="form-control" id="lote" name="lote">
-                                        <option disabled selected value="">Seleccionar Lote </option>
-                                        @foreach ($lotes as $lote)
-                                            <option value="{{ $lote->id }}">{{ $lote->nombre }}</option>
-                                        @endforeach
-                                    </select>
-                                    <span class="input-icon material-symbols-outlined">
-                                        grid_on
-                                    </span>
-                                </div>
-                            </div>
-
-                            <!-- Potrero Select -->
-                            <div class="form-group two-column-custom">
-                                <label for="potrero">Potrero</label>
-                                <div class="input-group-custom">
-                                    <select class="form-control" id="potrero" name="potrero">
-                                        <option disabled selected value="">Seleccionar Potrero</option>
-                                        @foreach ($potreros as $potrero)
-                                            <option value="{{ $potrero->id }}">{{ $potrero->nombre }}</option>
-                                        @endforeach
-                                    </select>
-                                    <span class="input-icon material-symbols-outlined">
-                                        outdoor_garden
-                                    </span>
-                                </div>
-                            </div>
+                        
+                        <div class="col-12 mb-3">
+                            <label for="file_import" class="form-label">Archivo Excel <span style="color: red;">*</span></label>
+                            <input type="file" 
+                                   class="form-control" 
+                                   id="file_import" 
+                                   name="file" 
+                                   accept=".xlsx,.xls,.csv"
+                                   required>
+                            <small class="text-muted">Archivos permitidos: .xlsx, .xls, .csv (Máximo 5MB)</small>
                         </div>
+                    </div>
 
-                        <div class="form-group">
-                            <label for="fecha_ubicacion">Fecha de Ubicación</label>
-                            <input type="date" class="form-control" id="fecha_movimiento" name="fecha_movimiento"
-                                required>
-                        </div>
-                        <div class="form-group">
-                            <label for="fecha_ubicacion">Motivo (opcional)</label>
-                            <textarea name="motivo" class="form-control" id="motivo" cols="30" rows="2"></textarea>
-                        </div>
-
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary closeCreateUbicacionModal">Cerrar</button>
-                            <button type="submit" class="btn btn-primary">Guardar</button>
-                        </div>
+                    {{-- Preview del archivo seleccionado --}}
+                    <div id="filePreview" class="alert alert-secondary" style="display: none;">
+                        <h6>📄 Archivo seleccionado:</h6>
+                        <p id="fileName" class="mb-0"></p>
                     </div>
                 </form>
 
-
+                {{-- Información sobre la estructura del Excel --}}
+                <div class="mt-4">
+                    <h6>📊 Estructura del Excel:</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Campo</th>
+                                    <th>Obligatorio</th>
+                                    <th>Ejemplo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>nombre</code></td>
+                                    <td><span class="badge bg-secondary">No</span></td>
+                                    <td>VACA001</td>
+                                </tr>
+                                <tr>
+                                    <td><code>numero</code></td>
+                                    <td><span class="badge bg-secondary">No</span></td>
+                                    <td>A001</td>
+                                </tr>
+                                <tr>
+                                    <td><code>sexo</code></td>
+                                    <td><span class="badge bg-danger">Sí</span></td>
+                                    <td>H, M, HEMBRA, MACHO</td>
+                                </tr>
+                                <tr>
+                                    <td><code>raza</code></td>
+                                    <td><span class="badge bg-secondary">No</span></td>
+                                    <td>Holstein</td>
+                                </tr>
+                                <tr>
+                                    <td><code>fecha_nacimiento</code></td>
+                                    <td><span class="badge bg-secondary">No</span></td>
+                                    <td>2024-12-25</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="submitImport">
+                    <span class="material-symbols-outlined me-2">upload</span>
+                    Importar Animales
+                </button>
             </div>
         </div>
     </div>
+</div>
 
-    {{-- Modal para registrar un peso --}}
-    <div class="modal fade" id="CreatePesoModal" tabindex="-1" aria-labelledby="CreatePesoModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3 class="modal-title" id="CreatePesoModal">Registrar Peso</h3>
-                    <span class="material-symbols-outlined closeCreatePesoModal" id="" style="cursor: pointer;">
-                        close
-                    </span>
-                </div>
-                <form id="pesoForm" action="javascript:void(0)" method="POST">
-                    @csrf
-                    <div class="modal-body">
-                        <div class="form-group">
-                            <label for="fecha_pesaje">Fecha del pesaje </label>
-                            <input type="date" class="form-control" id="fecha_pesaje" name="fecha_pesaje" required>
+{{-- Modal para crear un animal --}}
+<div class="modal fade" id="createAnimalModal" tabindex="-1" aria-labelledby="createAnimalModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createAnimalModal">Registrar animal</h5>
+                <span class="material-symbols-outlined closeCreateAnimalModal" id="" style="cursor: pointer;">
+                    close
+                </span>
+            </div>
+            <span class="form-error" id="form-error" style="display: none;">
+                <!-- El mensaje de error se mostrará aquí -->
+            </span>
+            <span class="form-success" id="form-success" style="display: none;">
+                <!-- El mensaje de error se mostrará aquí -->
+            </span>
+
+            <form id="animalForm" action="javascript:void(0)" method="POST">
+                @csrf
+                <input type="hidden" name="bypass_service_worker" value="true">
+                <div class="modal-body">
+                    <div class="d-flex space-b">
+                        <div class="form-group column-custom">
+                            <label for="nombre">Nombre del animal</label>
+                            <div class="input-group-custom">
+                                <input type="text" class="form-control" id="nombre" name="nombre">
+                                <span class="input-icon material-symbols-outlined">sell</span>
+                            </div>
                         </div>
-                        <div class="d-flex space-b">
-                            <div class="form-group two-column-custom " style="    margin: 0px 5px 0px 0px;">
-                                <label for="id_animal_pesaje">Código Animal:</label>
-                                <select class="form-control" id="id_animal_pesaje" name="id_animal_pesaje" required>
-                                    <option value="">Seleccionar</option>
-                                    @foreach ($animales as $animal)
-                                        <option value="{{ $animal->id_animal }}">{{ $animal->codigo }} -
-                                            {{ $animal->nombre }}</option>
+
+                        <div class="form-group four-column-custom">
+                            <label for="id_predio">Predio <span style="color: red;">*</span></label>
+                            <div class="input-group-custom">
+                                <select class="form-control" id="id_predio_registrar" name="id_predio" required>
+                                    <option value="" disabled selected>Selecciona</option>
+                                    @foreach ($predios as $predio)
+                                    <option value="{{ $predio->id }}">{{ $predio->nombre_predio }}</option>
                                     @endforeach
                                 </select>
+                                <span class="input-icon material-symbols-outlined">gite</span>
                             </div>
-                            <div class="form-group two-column-custom">
-                                <label for="peso">Peso en Kg</label>
-                                <div class="input-group-custom">
-                                    <input type="number" class="form-control" id="peso" name="peso" required>
-                                    <span class="input-icon material-symbols-outlined">
-                                        weight
-                                    </span>
-                                </div>
-                            </div>
-
-                        </div>
-
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary closeCreatePesoModal">Cerrar</button>
-                            <button type="submit" class="btn btn-primary">Guardar</button>
                         </div>
                     </div>
-                </form>
 
-            </div>
+                    <div class="d-flex space-b">
+                        <!-- Código -->
+                        <div class="form-group three-column-custom">
+                            <label for="codigo-edit">Código <span style="color: red;">*</span></label>
+                            <div class="input-group-custom">
+                                <input type="text" class="form-control" id="codigo-edit" name="codigo" required>
+                                <span class="input-icon material-symbols-outlined">tag</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group three-column-custom">
+                            <label for="identificacion_electronica">ID Electrónica</label>
+                            <div class="input-group-custom">
+                                <input type="text" class="form-control" id="identificacion_electronica"
+                                    name="identificacion_electronica">
+                                <span class="input-icon material-symbols-outlined">vpn_key</span>
+                            </div>
+                        </div>
+
+                        <!-- ID SINIGAN -->
+                        <div class="form-group three-column-custom">
+                            <label for="id_sinigan">ID Sinigan</label>
+                            <div class="input-group-custom">
+                                <input type="text" class="form-control" id="id_sinigan" name="id_sinigan">
+                                <span class="input-icon material-symbols-outlined">pin</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mensaje-codigo" id="messagealert">
+
+                    </div>
+
+                    <div class="d-flex space-b">
+                        <div class="form-group two-column-custom">
+                            <label for="fecha_nacimiento-edit">Fecha de Nacimiento <span
+                                    style="color: red;">*</span></label>
+                            <input type="date" class="form-control" id="fecha_nacimiento_edit" name="fecha_nacimiento"
+                                required>
+                        </div>
+
+                        <!-- Años -->
+                        <div class="form-group four-column-custom">
+                            <label for="anos">Años:</label>
+                            <input type="number" class="form-control" id="anos_edit" name="anos">
+                        </div>
+
+                        <!-- Meses -->
+                        <div class="form-group four-column-custom">
+                            <label for="meses">Meses:</label>
+                            <input type="number" class="form-control" id="meses_edit" name="meses">
+                        </div>
+
+                        <!-- Días -->
+                        <div class="form-group four-column-custom">
+                            <label for="dias">Días:</label>
+                            <input type="number" class="form-control" id="dias_edit" name="dias">
+                        </div>
+                    </div>
+
+                    <div class="d-flex space-b">
+                        <div class="form-group two-column-custom">
+                            <label for="sexo-edit">Sexo <span style="color: red;">*</span></label>
+                            <div class="input-group-custom">
+                                <select class="form-control" id="sexo-edit" name="sexo" required>
+                                    <option value="" disabled selected>Selecciona</option>
+                                    <option value="macho">Macho</option>
+                                    <option value="hembra">Hembra</option>
+                                </select>
+                                <span class="input-icon material-symbols-outlined">female</span>
+                            </div>
+                        </div>
+
+                        <!-- Raza -->
+                        <div class="form-group two-column-custom">
+                            <label for="raza-id">Raza</label>
+                            <div class="input-group-custom">
+                                <select class="form-control" id="raza-id" name="raza">
+                                    <option value="" disabled selected>Selecciona una raza</option>
+                                    @foreach ($razas as $raza)
+                                    <option value="{{ $raza->nombre_razas }}">{{ $raza->nombre_razas }}</option>
+                                    @endforeach
+                                </select>
+                                <span class="input-icon material-symbols-outlined">eco</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex space-b">
+                        <div class="form-group two-column-custom">
+                            <label for="color-edit">Color</label>
+                            <div class="input-group-custom">
+                                <input type="text" class="form-control" id="color-edit" name="color">
+                                <span class="input-icon material-symbols-outlined">palette</span>
+                            </div>
+                        </div>
+
+                        <!-- Hierro -->
+                        <div class="form-group two-column-custom">
+                            <label for="hierro-id">Hierro</label>
+                            <div class="input-group-custom">
+                                <input type="number" class="form-control" id="hierro-id" name="hierro">
+                                <span class="input-icon material-symbols-outlined">ev_shadow</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Estado productivo -->
+                    <div class="form-group">
+                        <label for="estado_productivo">Estado Productivo</label>
+                        <select class="form-control" id="estado_productivo" name="estado_productivo">
+                            <option value="" selected disabled>Selecciona</option>
+                            <option value="vaca_parida">Vaca Parida</option>
+                            <option value="vaca_seca">Vaca Seca</option>
+                            <option value="novilla_vientre">Novilla de Vientre</option>
+                            <option value="hembra_levante">Hembra de Levante</option>
+                            <option value="cria_hembra">Cría Hembra</option>
+                            <option value="reproductor_toro">Reproductor Toro</option>
+                            <option value="macho_ceba">Macho de Ceba</option>
+                            <option value="macho_levante">Macho de Levante</option>
+                            <option value="cria_macho">Cría Macho</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="fecha_ingreso_hato">Fecha ingreso hato</label>
+                        <input type="date" class="form-control" name="fecha_ingreso_hato" id="fecha_ingreso_hato">
+                    </div>
+                    <!-- Campos Parto -->
+                    <div id="partoFields" class="d-none">
+                        <div class="form-group">
+                            <label for="fecha_parto">Fecha de Parto <span style="color: red;">*</span></label>
+                            <input type="date" class="form-control" id="fecha_parto" name="fecha_parto">
+                        </div>
+                        <div class="form-group">
+                            <label for="tipo_parto">Tipo de Parto <span style="color: red;">*</span></label>
+                            <select class="form-control" id="tipo_parto" name="tipo_parto">
+                                <option value="" selected disabled>Selecciona</option>
+                                <option value="Parto">Parto</option>
+                                <option value="Gemelar">Gemelar</option>
+                                <option value="Trillizo">Trillizo</option>
+                            </select>
+                        </div>
+
+                        <!-- Crías -->
+                        <div id="criasContainer" class="mt-3">
+                            <div id="criasList"></div>
+                            <button type="button" id="addCriaBtn" class="btn btn-sm btn-success mt-2">Agregar
+                                Cría</button>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <label for="animalIsCompra">
+                            <input type="checkbox" name="isComprado" id="animalIsCompra">
+                            Marcar como comprado
+                        </label>
+                    </div>
+                    <div id="compraFields" class="d-none">
+                        <div class="form-group">
+                            <label for="proveedor">Proveedor <span style="color: red;">*</span></label>
+                            <input type="text" class="form-control" id="proveedor" name="proveedor">
+                        </div>
+                        <div class="form-group">
+                            <label for="fechaCompra">Fecha sde Compra <span style="color: red;">*</span></label>
+                            <input type="date" class="form-control" id="fechaCompra" name="fechaCompra">
+                        </div>
+                        <div class="form-group">
+                            <label for="precioCompra">Precio de Compra <span style="color: red;">*</span></label>
+                            <input type="number" step="0.01" class="form-control" id="precioCompra" name="precioCompra">
+                        </div>
+                    </div>
+                </div>
+                {{-- <button type="button" class="btn btn-secondary closeCreateAnimalModal">Cerrar</button>
+
+                <button type="submit" class="btn btn-primary">Guardar</button>
+
+                --}}
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary closeCreateAnimalModal">Cerrar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+                {{-- <button type="submit" class="btn btn-primary">Guardar</button>
+                --}}
+            </form>
         </div>
     </div>
+</div>
 
-    {{-- Modal estado productivo y reproductivo --}}
-    <div class="modal fade" id="CreateEstadoModal" tabindex="-1" aria-labelledby="CreateEstadoModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title" id="CreateEstadoModalLabel">Registrar Estado Animal</h4>
-                    <span class="material-symbols-outlined closeCreateEstadoModal" style="cursor: pointer;">
-                        close
-                    </span>
+{{-- Modal para crear una nueva ubicacion --}}
+<div class="modal fade" id="CreateUbicacionModal" tabindex="-1" aria-labelledby="CreateUbicacionModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="CreateUbicacionModal">Crear Ubicacion</h3>
+                <span class="material-symbols-outlined closeCreateUbicacionModal" id="" style="cursor: pointer;">
+                    close
+                </span>
+            </div>
+            <form id="ubicacionForm" action="javascript:void(0)" method="POST">
+                @csrf
+                <div class="modal-body">
+                    <h3 class="title-with-link" style="border-bottom: 1px solid lightgray;
+                        margin: 0px 0px 10px 0px;">
+                        Asignar
+                        animales </h3>
+                    <div class="form-group">
+                        <label for="codigo_animal_">Código Animal:</label>
+                        <select class="form-control" id="codigo_animal_" name="id_animal[]">
+                            <option disabled selected value="">Seleccionar</option>
+                            @foreach ($animales as $animal)
+                            <option value="{{ $animal->id_animal }}">{{ $animal->codigo }}
+                            </option>
+                            @endforeach
+                        </select>
+
+                        <div class="selected-animals-container">
+                            <span class="no-selected">Selecciona un animal</span>
+                        </div>
+                    </div>
+
+                    <h3 class="title-with-link" style="border-bottom: 1px solid lightgray;
+                        margin: 10px 0px;">
+                        Ubicación <button class="link-add" id="openCreateUbicacionModal">Asignar con ubicaciones
+                            existentes
+                            <span style="font-size: 12px;
+                        margin: 0px 2px;" class="material-symbols-outlined">
+                                pin_drop
+                            </span></button></h3>
+
+                    <div class="d-flex space-b">
+                        <!-- Lote Select -->
+                        <div class="form-group two-column-custom" style="margin: 0px 5px 0px 0px;">
+                            <label for="lote">Lote (opcional)</label>
+                            <div class="input-group-custom">
+                                <select class="form-control" id="lote" name="lote">
+                                    <option disabled selected value="">Seleccionar Lote </option>
+                                    @foreach ($lotes as $lote)
+                                    <option value="{{ $lote->id }}">{{ $lote->nombre }}</option>
+                                    @endforeach
+                                </select>
+                                <span class="input-icon material-symbols-outlined">
+                                    grid_on
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Potrero Select -->
+                        <div class="form-group two-column-custom">
+                            <label for="potrero">Potrero</label>
+                            <div class="input-group-custom">
+                                <select class="form-control" id="potrero" name="potrero">
+                                    <option disabled selected value="">Seleccionar Potrero</option>
+                                    @foreach ($potreros as $potrero)
+                                    <option value="{{ $potrero->id }}">{{ $potrero->nombre }}</option>
+                                    @endforeach
+                                </select>
+                                <span class="input-icon material-symbols-outlined">
+                                    outdoor_garden
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="fecha_ubicacion">Fecha de Ubicación</label>
+                        <input type="date" class="form-control" id="fecha_movimiento" name="fecha_movimiento" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="fecha_ubicacion">Motivo (opcional)</label>
+                        <textarea name="motivo" class="form-control" id="motivo" cols="30" rows="2"></textarea>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary closeCreateUbicacionModal">Cerrar</button>
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                    </div>
                 </div>
+            </form>
 
-                <form id="estadoForm" action="{{ route('animal.estado.store') }}" method="POST">
-                    @csrf
-                    <div class="modal-body">
-                        <!-- Selección del Código de Animal -->
-                        <div class="form-group">
-                            <label for="id_animal">Código Animal:</label>
-                            <select class="form-control" id="id_animal" name="id_animal" required>
-                                <option value="">Seleccionar Animal</option>
+
+        </div>
+    </div>
+</div>
+
+{{-- Modal para registrar un peso --}}
+<div class="modal fade" id="CreatePesoModal" tabindex="-1" aria-labelledby="CreatePesoModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="CreatePesoModal">Registrar Peso</h3>
+                <span class="material-symbols-outlined closeCreatePesoModal" id="" style="cursor: pointer;">
+                    close
+                </span>
+            </div>
+            <form id="pesoForm" action="javascript:void(0)" method="POST">
+                @csrf
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="fecha_pesaje">Fecha del pesaje </label>
+                        <input type="date" class="form-control" id="fecha_pesaje" name="fecha_pesaje" required>
+                    </div>
+                    <div class="d-flex space-b">
+                        <div class="form-group two-column-custom " style="    margin: 0px 5px 0px 0px;">
+                            <label for="id_animal_pesaje">Código Animal:</label>
+                            <select class="form-control" id="id_animal_pesaje" name="id_animal_pesaje" required>
+                                <option value="">Seleccionar</option>
                                 @foreach ($animales as $animal)
-                                    <option value="{{ $animal->id_animal }}" data-sexo="{{ $animal->sexo }}">
-                                        {{ $animal->codigo }} - {{ $animal->nombre }}
-                                    </option>
+                                <option value="{{ $animal->id_animal }}">{{ $animal->codigo }} -
+                                    {{ $animal->nombre }}</option>
                                 @endforeach
                             </select>
                         </div>
-
-                        <!-- Estado Productivo (solo hembras) -->
-                        <div class="form-group" id="estado_productivo_wrapper">
-                            <label for="estado_productivo_id">Estado productivo</label>
-                            <select class="form-control @error('estado_productivo_id') is-invalid @enderror"
-                                id="estado_productivo_id" name="estado_productivo_id">
-                                <option value="">Seleccionar estado productivo</option>
-                            </select>
-                            @error('estado_productivo_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <!-- Estado Reproductivo (para machos y hembras) -->
-                        <div class="form-group" id="estado_reproductivo_wrapper" style="display: none;">
-                            <label for="estado_reproductivo_id">Estado reproductivo</label>
-                            <select class="form-control @error('estado_reproductivo_id') is-invalid @enderror"
-                                id="estado_reproductivo_id" name="estado_reproductivo_id">
-                                <option value="">Seleccionar estado reproductivo</option>
-                            </select>
-                            @error('estado_reproductivo_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="d-flex space-b">
-                            <!-- Fecha de inicio -->
-                            <div class="form-group two-column-custom ">
-                                <label for="fecha_inicio">Fecha de inicio</label>
-                                <input type="date" class="form-control @error('fecha_inicio') is-invalid @enderror"
-                                    id="fecha_inicio" name="fecha_inicio" required>
-                                @error('fecha_inicio')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <!-- Fecha de fin -->
-                            <div class="form-group two-column-custom">
-                                <label for="fecha_fin">Fecha de fin (opcional)</label>
-                                <input type="date" class="form-control  @error('fecha_fin') is-invalid @enderror"
-                                    id="fecha_fin" name="fecha_fin">
-                                @error('fecha_fin')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
+                        <div class="form-group two-column-custom">
+                            <label for="peso">Peso en Kg</label>
+                            <div class="input-group-custom">
+                                <input type="number" class="form-control" id="peso" name="peso" required>
+                                <span class="input-icon material-symbols-outlined">
+                                    weight
+                                </span>
                             </div>
                         </div>
 
                     </div>
 
-                    <!-- Modal Footer -->
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary closeCreateEstadoModal">Cerrar</button>
+                        <button type="button" class="btn btn-secondary closeCreatePesoModal">Cerrar</button>
                         <button type="submit" class="btn btn-primary">Guardar</button>
                     </div>
-                </form>
+                </div>
+            </form>
 
-
-            </div>
         </div>
     </div>
+</div>
+
+{{-- Modal estado productivo y reproductivo --}}
+<div class="modal fade" id="CreateEstadoModal" tabindex="-1" aria-labelledby="CreateEstadoModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="CreateEstadoModalLabel">Registrar Estado Animal</h4>
+                <span class="material-symbols-outlined closeCreateEstadoModal" style="cursor: pointer;">
+                    close
+                </span>
+            </div>
+
+            <form id="estadoForm" action="{{ route('animal.estado.store') }}" method="POST">
+                @csrf
+                <div class="modal-body">
+                    <!-- Selección del Código de Animal -->
+                    <div class="form-group">
+                        <label for="id_animal">Código Animal:</label>
+                        <select class="form-control" id="id_animal" name="id_animal" required>
+                            <option value="">Seleccionar Animal</option>
+                            @foreach ($animales as $animal)
+                            <option value="{{ $animal->id_animal }}" data-sexo="{{ $animal->sexo }}">
+                                {{ $animal->codigo }} - {{ $animal->nombre }}
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Estado Productivo (solo hembras) -->
+                    <div class="form-group" id="estado_productivo_wrapper">
+                        <label for="estado_productivo_id">Estado productivo</label>
+                        <select class="form-control @error('estado_productivo_id') is-invalid @enderror"
+                            id="estado_productivo_id" name="estado_productivo_id">
+                            <option value="">Seleccionar estado productivo</option>
+                        </select>
+                        @error('estado_productivo_id')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <!-- Estado Reproductivo (para machos y hembras) -->
+                    <div class="form-group" id="estado_reproductivo_wrapper" style="display: none;">
+                        <label for="estado_reproductivo_id">Estado reproductivo</label>
+                        <select class="form-control @error('estado_reproductivo_id') is-invalid @enderror"
+                            id="estado_reproductivo_id" name="estado_reproductivo_id">
+                            <option value="">Seleccionar estado reproductivo</option>
+                        </select>
+                        @error('estado_reproductivo_id')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="d-flex space-b">
+                        <!-- Fecha de inicio -->
+                        <div class="form-group two-column-custom ">
+                            <label for="fecha_inicio">Fecha de inicio</label>
+                            <input type="date" class="form-control @error('fecha_inicio') is-invalid @enderror"
+                                id="fecha_inicio" name="fecha_inicio" required>
+                            @error('fecha_inicio')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <!-- Fecha de fin -->
+                        <div class="form-group two-column-custom">
+                            <label for="fecha_fin">Fecha de fin (opcional)</label>
+                            <input type="date" class="form-control  @error('fecha_fin') is-invalid @enderror"
+                                id="fecha_fin" name="fecha_fin">
+                            @error('fecha_fin')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary closeCreateEstadoModal">Cerrar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+
+
+        </div>
+    </div>
+</div>
 @section('scripts')
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="../assets/js/inventario/estadoScript.js"></script>
-    <script src="../assets/js/inventario/fichaDinamicaScript.js"></script>
-    <script src="../assets/js/inventario/hiddenShowModalScript.js"></script>
-    <script src="../assets/js/inventario/selectedMultipleScript.js"></script>
-    <script src="../assets/js/inventario/CreateAnimalFecha.js"></script>
-    <script>
-        // Variable global para la instancia de la BD
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="../assets/js/inventario/estadoScript.js"></script>
+<script src="../assets/js/inventario/fichaDinamicaScript.js"></script>
+<script src="../assets/js/inventario/hiddenShowModalScript.js"></script>
+<script src="../assets/js/inventario/selectedMultipleScript.js"></script>
+<script src="../assets/js/inventario/CreateAnimalFecha.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Abrir modal de importación
+    document.getElementById('openImportModal').addEventListener('click', function() {
+        const importModal = new bootstrap.Modal(document.getElementById('importModal'));
+        importModal.show();
+    });
+
+    // Validación del archivo
+    const fileInput = document.getElementById('file_import');
+    const filePreview = document.getElementById('filePreview');
+    const fileName = document.getElementById('fileName');
+    
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            // Validar tamaño (5MB)
+            const maxSize = 5 * 1024 * 1024;
+            if (file.size > maxSize) {
+                alert('El archivo es demasiado grande. Máximo 5MB permitido.');
+                this.value = '';
+                filePreview.style.display = 'none';
+                return;
+            }
+            
+            // Validar tipo de archivo
+            const allowedTypes = [
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+                'application/vnd.ms-excel', // .xls
+                'text/csv' // .csv
+            ];
+            
+            if (!allowedTypes.includes(file.type)) {
+                alert('Tipo de archivo no permitido. Solo se permiten archivos .xlsx, .xls, .csv');
+                this.value = '';
+                filePreview.style.display = 'none';
+                return;
+            }
+            
+            // Mostrar preview del archivo
+            fileName.textContent = `${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+            filePreview.style.display = 'block';
+        } else {
+            filePreview.style.display = 'none';
+        }
+    });
+
+    // Enviar formulario
+    document.getElementById('submitImport').addEventListener('click', function() {
+        const form = document.getElementById('importForm');
+        const predioId = document.getElementById('predio_id_import').value;
+        const fileInput = document.getElementById('file_import');
+        
+        // Validaciones
+        if (!predioId) {
+            alert('Por favor selecciona un predio');
+            return;
+        }
+        
+        if (!fileInput.files[0]) {
+            alert('Por favor selecciona un archivo');
+            return;
+        }
+        
+        // Mostrar indicador de carga
+        this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Importando...';
+        this.disabled = true;
+        
+        // Enviar formulario
+        form.submit();
+    });
+});
+</script>
+<script>
+    // Variable global para la instancia de la BD
         let moollishDBInstance;
         // Variable para almacenar la promesa de inicialización
         let dbInitializationPromise;
@@ -1677,6 +1896,6 @@
 
         // ... (resto de funciones como showSuccessMessage, showErrorMessage, etc. si no están en alert-helper.js) ...
 
-    </script>
+</script>
 
 @endsection
