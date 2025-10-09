@@ -485,7 +485,7 @@ ficha animales
                             {{-- Nuevo botón para importar desde Excel --}}
                             <button id="openImportModal" class="btn btn-primary" style="height: 42px;">
                                 <span class="material-symbols-outlined">upload_file</span>
-                                Importar Excel
+                                Cargue Masivo
                             </button>
                         </div>
                     </div>
@@ -700,7 +700,8 @@ ficha animales
     </div>
 </div>
 @endsection
-{{-- Modal de Importación de Excel (agregar antes del @endsection) --}}
+
+{{-- Modal de importación --}}
 <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -712,33 +713,58 @@ ficha animales
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                {{-- Mensajes de éxito/error --}}
+                @if(session('success'))
+                    <div class="alert alert-success alert-dismissible fade show">
+                        {{ session('success') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                @endif
+
+                @if(session('error'))
+                    <div class="alert alert-danger alert-dismissible fade show">
+                        {{ session('error') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                @endif
+
+                @if(session('errores'))
+                    <div class="alert alert-warning">
+                        <h6>Errores encontrados:</h6>
+                        <ul class="mb-0">
+                            @foreach(session('errores') as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
                 {{-- Instrucciones --}}
-                <div class="alert alert-info" role="alert">
+                <div class="alert alert-info">
                     <h6 class="fw-bold mb-2">📋 Instrucciones:</h6>
                     <ul class="mb-0">
-                        <li>Descarga la plantilla de Excel haciendo clic en "Descargar Plantilla"</li>
-                        <li>Llena los datos de los animales en la plantilla</li>
-                        <li>Sube el archivo completado usando el formulario de abajo</li>
-                        <li>Los campos obligatorios son: <strong>sexo</strong></li>
+                        <li>Descarga la plantilla haciendo clic en "Descargar Plantilla"</li>
+                        <li>Llena los datos (Código y Sexo son obligatorios)</li>
                         <li>Formato de fecha: YYYY-MM-DD (Ej: 2024-12-25)</li>
+                        <li>Para padre/madre: usa el código del animal existente</li>
                     </ul>
                 </div>
 
-                {{-- Botón para descargar plantilla --}}
+                {{-- Botón descargar plantilla --}}
                 <div class="text-center mb-4">
-                    <a href="#" class="btn btn-success">
+                    <a href="{{ route('animales.template') }}" class="btn btn-success">
                         <span class="material-symbols-outlined me-2">download</span>
                         Descargar Plantilla Excel
                     </a>
                 </div>
 
-                {{-- Formulario de importación --}}
-                <form id="importForm" action="#" method="POST" enctype="multipart/form-data">
+                {{-- Formulario --}}
+                <form id="importForm" action="{{ route('animales.import') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     
                     <div class="row">
                         <div class="col-12 mb-3">
-                            <label for="predio_id_import" class="form-label">Predio <span style="color: red;">*</span></label>
+                            <label for="predio_id_import" class="form-label">Predio <span class="text-danger">*</span></label>
                             <select class="form-control" name="predio_id" id="predio_id_import" required>
                                 <option value="">Seleccionar Predio</option>
                                 @foreach($predios as $predio)
@@ -750,73 +776,27 @@ ficha animales
                         </div>
                         
                         <div class="col-12 mb-3">
-                            <label for="file_import" class="form-label">Archivo Excel <span style="color: red;">*</span></label>
-                            <input type="file" 
-                                   class="form-control" 
-                                   id="file_import" 
-                                   name="file" 
-                                   accept=".xlsx,.xls,.csv"
-                                   required>
+                            <label for="file_import" class="form-label">Archivo Excel <span class="text-danger">*</span></label>
+                            <input type="file" class="form-control" id="file_import" name="file" 
+                                   accept=".xlsx,.xls,.csv" required>
                             <small class="text-muted">Archivos permitidos: .xlsx, .xls, .csv (Máximo 5MB)</small>
                         </div>
                     </div>
 
-                    {{-- Preview del archivo seleccionado --}}
+                    {{-- Preview --}}
                     <div id="filePreview" class="alert alert-secondary" style="display: none;">
                         <h6>📄 Archivo seleccionado:</h6>
                         <p id="fileName" class="mb-0"></p>
                     </div>
-                </form>
 
-                {{-- Información sobre la estructura del Excel --}}
-                <div class="mt-4">
-                    <h6>📊 Estructura del Excel:</h6>
-                    <div class="table-responsive">
-                        <table class="table table-sm table-bordered">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Campo</th>
-                                    <th>Obligatorio</th>
-                                    <th>Ejemplo</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><code>nombre</code></td>
-                                    <td><span class="badge bg-secondary">No</span></td>
-                                    <td>VACA001</td>
-                                </tr>
-                                <tr>
-                                    <td><code>numero</code></td>
-                                    <td><span class="badge bg-secondary">No</span></td>
-                                    <td>A001</td>
-                                </tr>
-                                <tr>
-                                    <td><code>sexo</code></td>
-                                    <td><span class="badge bg-danger">Sí</span></td>
-                                    <td>H, M, HEMBRA, MACHO</td>
-                                </tr>
-                                <tr>
-                                    <td><code>raza</code></td>
-                                    <td><span class="badge bg-secondary">No</span></td>
-                                    <td>Holstein</td>
-                                </tr>
-                                <tr>
-                                    <td><code>fecha_nacimiento</code></td>
-                                    <td><span class="badge bg-secondary">No</span></td>
-                                    <td>2024-12-25</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        <button type="submit" id="submitImport" class="btn btn-primary">
+                            <span class="material-symbols-outlined me-2">upload</span>
+                            Importar
+                        </button>
                     </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="submitImport">
-                    <span class="material-symbols-outlined me-2">upload</span>
-                    Importar Animales
-                </button>
+                </form>
             </div>
         </div>
     </div>

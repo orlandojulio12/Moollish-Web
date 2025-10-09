@@ -462,7 +462,8 @@ Route::middleware([
     })->name('informacion.legal');
 
 });
-
+Route::post('/animales/import', [AnimalesController::class, 'import'])->name('animales.import');
+Route::get('/animales/template', [AnimalesController::class, 'downloadTemplate'])->name('animales.template');
 
 // Rutas para membresias
 Route::middleware(['auth'])->group(function () {

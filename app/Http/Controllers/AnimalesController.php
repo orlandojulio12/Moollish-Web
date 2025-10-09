@@ -31,6 +31,9 @@ use App\Models\CategoriaInsumo;
 use App\Models\MovimientoInsumo;
 use App\Models\InventarioInsumo;
 use App\Models\Movimientos;
+use App\Imports\AnimalesImport;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\AnimalesTemplateExport;
 
 class AnimalesController extends Controller
 {
@@ -87,6 +90,58 @@ class AnimalesController extends Controller
             'insumosConStock' // Pasar la lista filtrada por stock
         ));
     }
+  public function import(Request $request)
+{
+    $request->validate([
+        'predio_id' => 'required|exists:predios,id',
+        'file' => 'required|file|mimes:xlsx,xls,csv|max:5120',
+    ]);
+
+    try {
+        $file = $request->file('file');
+        $predio_id = $request->predio_id;
+
+        $import = new AnimalesImport($predio_id);
+        
+        Excel::import($import, $file);
+
+        // Registrar partos automáticos
+        $import->registrarPartosAutomaticos();
+
+        $errores = $import->getErrores();
+        
+        if (!empty($errores)) {
+            return redirect()->back()
+                ->with('warning', 'Importación completada con advertencias:')
+                ->with('errores', $errores);
+        }
+
+        return redirect()->back()->with('success', 'Animales importados exitosamente');
+
+    } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+        $failures = $e->failures();
+        $errores = [];
+        
+        foreach ($failures as $failure) {
+            $errores[] = "Fila {$failure->row()}: " . implode(', ', $failure->errors());
+        }
+        
+        return redirect()->back()
+            ->with('error', 'Error de validación')
+            ->with('errores', $errores);
+        
+    } catch (\Exception $e) {
+        return redirect()->back()->with('error', 'Error al importar: ' . $e->getMessage());
+    }
+}
+
+/**
+ * Descargar plantilla Excel
+ */
+public function downloadTemplate()
+{
+    return Excel::download(new AnimalesTemplateExport(), 'plantilla_animales.xlsx');
+}
 
 
     public function medicacionPost(Request $request)
