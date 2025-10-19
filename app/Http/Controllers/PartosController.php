@@ -17,6 +17,9 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use App\Imports\PartosImport;
+use App\Exports\PartosTemplateExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 
 class PartosController extends Controller
@@ -57,11 +60,11 @@ class PartosController extends Controller
             DB::beginTransaction();
             // Validación de datos de entrada
             $request->validate([
-                'id_animal'    => 'required|exists:animales,id_animal',
-                'fecha_parto'  => 'required|date',
-                'tipo_parto'   => 'required|in:Parto,Gemelar,Trillizo,Muerte Fetal,Aborto',
-                'observaciones'=> 'nullable|string|max:255',
-                'padre'        => 'nullable',
+                'id_animal' => 'required|exists:animales,id_animal',
+                'fecha_parto' => 'required|date',
+                'tipo_parto' => 'required|in:Parto,Gemelar,Trillizo,Muerte Fetal,Aborto',
+                'observaciones' => 'nullable|string|max:255',
+                'padre' => 'nullable',
                 'padre_nombre' => 'nullable'
             ]);
 
@@ -71,7 +74,7 @@ class PartosController extends Controller
             // Verificar que el animal sea hembra
             if ($madre->sexo !== 'hembra') {
                 return response()->json([
-                    'status'  => 'error',
+                    'status' => 'error',
                     'message' => 'El animal seleccionado no es una hembra.'
                 ]);
             }
@@ -90,7 +93,7 @@ class PartosController extends Controller
                 if ($diasDesdeUltimoParto < $diasGestacion) {
                     Log::error("La vaca aún no puede parir. Último parto fue hace {$diasDesdeUltimoParto} días, se requieren {$diasGestacion} días.");
                     return response()->json([
-                        'status'  => 'error',
+                        'status' => 'error',
                         'message' => "La vaca no puede parir, ya que su último parto fue hace {$diasDesdeUltimoParto} días. Se requieren al menos {$diasGestacion} días de gestación."
                     ]);
                 }
@@ -103,7 +106,7 @@ class PartosController extends Controller
                 if ($fechaParto->lt($fechaProyectado) && !in_array($request->tipo_parto, ['Muerte Fetal', 'Aborto'])) {
                     Log::error('La vaca aún no puede parir por fecha proyectada.');
                     return response()->json([
-                        'status'  => 'error',
+                        'status' => 'error',
                         'message' => "La vaca aún no puede parir por fecha proyectada. dias de gestacion: {$diasGestacion}, fecha proyectada: {$fechaProyectado}, fecha parto: {$fechaParto}"
                     ]);
                 }
@@ -133,7 +136,7 @@ class PartosController extends Controller
                     if ($criaData) {
                         $request->validate([
                             "crias.$i.codigo_cria" => 'nullable|unique:animales,codigo',
-                            "crias.$i.sexo_cria"   => 'required|in:macho,hembra',
+                            "crias.$i.sexo_cria" => 'required|in:macho,hembra',
                         ]);
                         $cria = Animal::create([
                             'id_predio' => $criaData['predio_id_cria'] ?? $madre->id_predio,
@@ -221,39 +224,39 @@ class PartosController extends Controller
     }
 
     public function calcularDias(Request $request)
-{
-    $request->validate([
-        'id_animal' => 'required|exists:animales,id_animal'
-    ]);
+    {
+        $request->validate([
+            'id_animal' => 'required|exists:animales,id_animal'
+        ]);
 
-    $animal = Animal::find($request->id_animal);
+        $animal = Animal::find($request->id_animal);
 
-    // Calcular días desde el último parto (si existe)
-    $ultimoParto = $animal->partos()->latest('fecha_parto')->first();
-    $diasUltimoParto = $ultimoParto
-        ? (int) Carbon::parse($ultimoParto->fecha_parto)->diffInDays(Carbon::now())
-        : 'N/A';
+        // Calcular días desde el último parto (si existe)
+        $ultimoParto = $animal->partos()->latest('fecha_parto')->first();
+        $diasUltimoParto = $ultimoParto
+            ? (int) Carbon::parse($ultimoParto->fecha_parto)->diffInDays(Carbon::now())
+            : 'N/A';
 
-    // Calcular días de preñez (permitiendo valores negativos, pero mostrando el valor absoluto)
-    if ($animal->estado_reproductivo_id == EstadoReproductivo::PRENADA) {
-        $ultimoTacto = $animal->ultimoTacto()->first();
-        if ($ultimoTacto) {
-            // Se asume que la preñez inició 280 días antes de la fecha proyectada
-            $fechaInicioPrenex = Carbon::parse($ultimoTacto->parto_proyectado)->subDays(280);
-            // Calcula la diferencia en días, permitiendo negativos, y luego usamos abs() para mostrar el valor absoluto
-            $diasPrenez = abs((int) Carbon::now()->diffInDays($fechaInicioPrenex, false));
+        // Calcular días de preñez (permitiendo valores negativos, pero mostrando el valor absoluto)
+        if ($animal->estado_reproductivo_id == EstadoReproductivo::PRENADA) {
+            $ultimoTacto = $animal->ultimoTacto()->first();
+            if ($ultimoTacto) {
+                // Se asume que la preñez inició 280 días antes de la fecha proyectada
+                $fechaInicioPrenex = Carbon::parse($ultimoTacto->parto_proyectado)->subDays(280);
+                // Calcula la diferencia en días, permitiendo negativos, y luego usamos abs() para mostrar el valor absoluto
+                $diasPrenez = abs((int) Carbon::now()->diffInDays($fechaInicioPrenex, false));
+            } else {
+                $diasPrenez = 'N/A';
+            }
         } else {
             $diasPrenez = 'N/A';
         }
-    } else {
-        $diasPrenez = 'N/A';
-    }
 
-    return response()->json([
-        'diasUltimoParto' => $diasUltimoParto,
-        'diasPrenez' => $diasPrenez,
-    ]);
-}
+        return response()->json([
+            'diasUltimoParto' => $diasUltimoParto,
+            'diasPrenez' => $diasPrenez,
+        ]);
+    }
 
 
 
@@ -535,7 +538,7 @@ class PartosController extends Controller
             ->get();
 
         // Preparar datos adicionales para cada hembra
-            $hembras = $hembras->map(function ($hembra) {
+        $hembras = $hembras->map(function ($hembra) {
             $fechaParto = $hembra->ultimoParto ? \Carbon\Carbon::parse($hembra->ultimoParto->fecha_parto) : null;
 
             $fechaPrenez = $hembra->ultimoTacto && $hembra->ultimoTacto->fecha
@@ -593,6 +596,94 @@ class PartosController extends Controller
     }
 
 
+    public function downloadTemplate()
+    {
+        return Excel::download(new PartosTemplateExport(), 'plantilla_partos.xlsx');
+    }
+
+    /**
+     * Importar partos desde Excel
+     */
+   public function import(Request $request)
+{
+    $request->validate([
+        'predio_id' => 'required|exists:predios,id',
+        'file' => 'required|file|mimes:xlsx,xls,csv|max:5120',
+    ]);
+
+    try {
+        \Log::info('Inicio importación partos');
+
+        $file = $request->file('file');
+        $predio_id = $request->predio_id;
+
+        $import = new PartosImport($predio_id);
+        Excel::import($import, $file);
+
+        $exitosos = $import->getExitosos();
+        $duplicados = $import->getDuplicados();
+        $errores = $import->getErrores();
+        
+        $totalDuplicados = count($duplicados);
+        $totalErrores = count($errores);
+
+        \Log::info("Importación completada: {$exitosos} exitosos, {$totalDuplicados} duplicados, {$totalErrores} errores");
+
+        // Caso 1: SOLO errores y duplicados (0 exitosos) - CORREGIDO
+        if ($exitosos == 0) {
+            // Si no hay ni errores ni duplicados, el archivo estaba vacío
+            if ($totalErrores == 0 && $totalDuplicados == 0) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'El archivo no contiene registros válidos para importar',
+                    'errores' => ['El archivo está vacío o no tiene datos válidos'],
+                    'duplicados' => [],
+                    'exitosos' => 0
+                ], 422);
+            }
+            
+            // Si hay errores o duplicados pero 0 exitosos
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No se pudo importar ningún parto nuevo',
+                'errores' => $errores,
+                'duplicados' => $duplicados,
+                'exitosos' => 0
+            ], 422);
+        }
+
+        // Caso 2: Algunos exitosos, hay errores o duplicados (importación parcial)
+        if ($exitosos > 0 && ($totalErrores > 0 || $totalDuplicados > 0)) {
+            return response()->json([
+                'status' => 'partial',
+                'message' => "Se importaron {$exitosos} parto(s) correctamente",
+                'exitosos' => $exitosos,
+                'duplicados' => $duplicados,
+                'errores' => $errores
+            ], 207);
+        }
+
+        // Caso 3: TODO exitoso (sin errores ni duplicados)
+        return response()->json([
+            'status' => 'success',
+            'message' => "Se importaron {$exitosos} parto(s) exitosamente",
+            'exitosos' => $exitosos,
+            'duplicados' => [],
+            'errores' => []
+        ]);
+
+    } catch (\Exception $e) {
+        \Log::error('Error crítico en import: ' . $e->getMessage());
+        \Log::error($e->getTraceAsString());
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Error crítico al importar: ' . $e->getMessage(),
+            'errores' => [$e->getMessage()],
+            'duplicados' => [],
+            'exitosos' => 0
+        ], 500);
+    }
+}
 
 
 }

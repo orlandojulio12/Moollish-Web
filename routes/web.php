@@ -308,11 +308,15 @@ Route::middleware([
     Route::post('/pesaje_animal/store', [PesajeAnimalController::class, 'store'])->name('storePesaje.store');
     //rutas para el estado
     Route::post('animal/estado', [AnimalEstadoController::class, 'store'])->name('animal.estado.store');
+
     //rutas para partos
     Route::post('/animales/calcular-dias', [PartosController::class, 'calcularDias'])->name('animales.calcularDias');
     Route::post('/partos/store', [PartosController::class, 'store'])->name('partos.store');
     Route::get('/partos/index', [PartosController::class, 'create'])->name('partos.index');
     Route::get('/partos/historial', [PartosController::class, 'History'])->name('partos.historial');
+    Route::get('/partos/template', [PartosController::class, 'downloadTemplate'])->name('partos.template');
+    Route::post('/partos/import', [PartosController::class, 'import'])->name('partos.import');
+
     //rutas para el pesaje de leche
     Route::post('/pesaje_leche/store', [PesajeLecheController::class, 'store'])->name('pesaje_leche.store');
     Route::get('/pesaje_leche/index', [PesajeLecheController::class, 'index'])->name('pesajeLeche.index');
