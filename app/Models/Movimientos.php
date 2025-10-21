@@ -32,7 +32,7 @@ class Movimientos extends Model
 
     public function planCuenta()
     {
-        return $this->belongsTo(PlanCuenta::class, 'plan_cuenta');
+        return $this->belongsTo(PlanCuenta::class, 'plan_cuenta', 'codcta');
     }
     
     public function subcuentas()
