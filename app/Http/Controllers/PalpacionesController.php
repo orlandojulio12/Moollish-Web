@@ -12,6 +12,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Veterinario;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\PalpacionesImport;
+use App\Exports\PalpacionesTemplateExport;
 use Illuminate\Support\Facades\Log;
 
 class PalpacionesController extends Controller
@@ -128,9 +131,82 @@ class PalpacionesController extends Controller
         return view('reportes.ProximasPalpaciones', compact('hembras', 'veterinarios'));
     }
 
+public function downloadTemplate()
+{
+    return Excel::download(new PalpacionesTemplateExport(), 'plantilla_palpaciones.xlsx');
+}
 
+public function import(Request $request)
+{
+    $request->validate([
+        'predio_id' => 'required|exists:predios,id',
+        'file' => 'required|file|mimes:xlsx,xls,csv|max:5120',
+    ]);
 
+    try {
+        Log::info('Inicio importación palpaciones');
+        $file = $request->file('file');
+        $predio_id = $request->predio_id;
 
+        $import = new PalpacionesImport($predio_id);
+        Excel::import($import, $file);
+
+        $exitosos = $import->getExitosos();
+        $duplicados = $import->getDuplicados();
+        $errores = $import->getErrores();
+        $totalDuplicados = count($duplicados);
+        $totalErrores = count($errores);
+
+        Log::info("Importación completada: {$exitosos} exitosos, {$totalDuplicados} duplicados, {$totalErrores} errores");
+
+        if ($exitosos == 0) {
+            if ($totalErrores == 0 && $totalDuplicados == 0) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'El archivo no contiene registros válidos para importar',
+                    'errores' => ['El archivo está vacío o no tiene datos válidos'],
+                    'duplicados' => [],
+                    'exitosos' => 0
+                ], 422);
+            }
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No se pudo importar ninguna palpación nueva',
+                'errores' => $errores,
+                'duplicados' => $duplicados,
+                'exitosos' => 0
+            ], 422);
+        }
+
+        if ($exitosos > 0 && ($totalErrores > 0 || $totalDuplicados > 0)) {
+            return response()->json([
+                'status' => 'partial',
+                'message' => "Se importaron {$exitosos} palpación(es) correctamente",
+                'exitosos' => $exitosos,
+                'duplicados' => $duplicados,
+                'errores' => $errores
+            ], 207);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => "Se importaron {$exitosos} palpación(es) exitosamente",
+            'exitosos' => $exitosos,
+            'duplicados' => [],
+            'errores' => []
+        ]);
+
+    } catch (\Exception $e) {
+        Log::error('Error crítico en import: ' . $e->getMessage());
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Error crítico al importar: ' . $e->getMessage(),
+            'errores' => [$e->getMessage()],
+            'duplicados' => [],
+            'exitosos' => 0
+        ], 500);
+    }
+}
 
 
 }

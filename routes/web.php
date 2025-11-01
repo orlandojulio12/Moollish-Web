@@ -338,6 +338,8 @@ Route::middleware([
     //Palpaciones
     Route::get('/Palpaciones', [PalpacionesController::class, 'index'])->name('palpaciones.index');
     Route::post('/Palpaciones/store', [PalpacionesController::class, 'store'])->name('palpaciones.store');
+    Route::get('/palpaciones/template', [PalpacionesController::class, 'downloadTemplate'])->name('palpaciones.template');
+    Route::post('/palpaciones/import', [PalpacionesController::class, 'import'])->name('palpaciones.import');
     //Muerte Animal
 
     Route::get('/Muerte/index', [MuerteAnimalController::class, 'index'])->name('MuerteAnimal.index');

@@ -90,32 +90,39 @@ class GastoController extends Controller
     $saldo = 0;
 
     if ($user->role->name === 'admin') {
-        // Admin ve todos los predios
         $Predios = Predios::all();
-
-        // Calcular saldo de todos los movimientos
-        $gastos = Movimientos::whereIn('id_predio', $Predios->pluck('id'))->get();
+        
+        // CARGAR LA RELACIÓN planCuenta
+        $gastos = Movimientos::with('planCuenta')
+            ->whereIn('id_predio', $Predios->pluck('id'))
+            ->get();
     } else {
-        // Propietario solo ve sus predios
         $Predios = Predios::whereHas('usuarios', function ($query) use ($user) {
             $query->where('users.id', $user->id);
         })->get();
 
-        $gastos = Movimientos::whereIn('id_predio', $Predios->pluck('id'))->get();
+        // CARGAR LA RELACIÓN planCuenta
+        $gastos = Movimientos::with('planCuenta')
+            ->whereIn('id_predio', $Predios->pluck('id'))
+            ->get();
     }
 
-    // Calcular saldo (ya sea de todos o de los asignados)
+    // Calcular saldo CON VERIFICACIÓN
     foreach ($gastos as $gasto) {
-        if ($gasto->planCuenta->naturaleza === 'Ingresos' || $gasto->planCuenta->naturaleza === 'Activos') {
-            $saldo += abs($gasto->cantidad);
-        } else {
-            $saldo -= abs($gasto->cantidad);
+        // Verificar que planCuenta existe y tiene naturaleza
+        if ($gasto->planCuenta && $gasto->planCuenta->naturaleza) {
+            if ($gasto->planCuenta->naturaleza === 'Ingresos' || 
+                $gasto->planCuenta->naturaleza === 'Activos') {
+                $saldo += abs($gasto->cantidad);
+            } else {
+                $saldo -= abs($gasto->cantidad);
+            }
         }
     }
 
     $clase = PlanCuenta::whereRaw('LENGTH(codcta) = 6')->get();
     $planCuentas = PlanCuenta::all();
-     $categoriasPrincipales = PlanCuenta::whereRaw('LENGTH(codcta) = 6')->get();
+    $categoriasPrincipales = PlanCuenta::whereRaw('LENGTH(codcta) = 6')->get();
     $subcuentasDetalles = PlanCuenta::whereRaw('LENGTH(codcta) = 8')->get();
 
     return view('gastos.show', compact('clase', 'categoriasPrincipales',
