@@ -332,23 +332,30 @@ Route::middleware([
     Route::get('/partos/get-partos-vaca', [PartosController::class, 'getPartosByVaca'])->name('partos.getPartosByVaca');
     Route::get('/partos/get-partos-fecha', [PartosController::class, 'getPartosByFecha'])->name('partos.getPartosByFecha');
     Route::get('/partos/buscar', [PartosController::class, 'buscarPartos'])->name('partos.buscar');
+    
     //Monta natural
     Route::get('/MontaNatural', [MontaNaturalController::class, 'index'])->name('MontaNatural.index');
     Route::resource('monta_natural', MontaNaturalController::class)->only(['index', 'store']);
+    Route::get('/monta-natural/template', [MontaNaturalController::class, 'downloadTemplate'])->name('monta_natural.template');
+    Route::post('/monta-natural/import', [MontaNaturalController::class, 'import'])->name('monta_natural.import');
+
     //Palpaciones
     Route::get('/Palpaciones', [PalpacionesController::class, 'index'])->name('palpaciones.index');
     Route::post('/Palpaciones/store', [PalpacionesController::class, 'store'])->name('palpaciones.store');
     Route::get('/palpaciones/template', [PalpacionesController::class, 'downloadTemplate'])->name('palpaciones.template');
     Route::post('/palpaciones/import', [PalpacionesController::class, 'import'])->name('palpaciones.import');
+   
     //Muerte Animal
-
     Route::get('/Muerte/index', [MuerteAnimalController::class, 'index'])->name('MuerteAnimal.index');
     Route::post('/Muerte/store', [MuerteAnimalController::class, 'store'])->name('muerte.store');
+    
     // Venta Animal
     Route::get('/Venta/index', [VentaAnimalController::class, 'index'])->name('VentaAnimal.index');
     Route::post('/Venta/store', [VentaAnimalController::class, 'store'])->name('VentaAnimal.store');
+    
     //veterinario
     Route::get('/Veterinarios/index', [VeterinarioController::class, 'index'])->name('Veterinarios.index');
+    
     //reportes
     Route::get('/Reportes/index', [ReportesController::class, 'index'])->name('Reportes.index');
 

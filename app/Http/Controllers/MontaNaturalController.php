@@ -8,6 +8,9 @@ use App\Models\Animal;
 use App\Models\EstadoProductivo;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\MontaTemplateExport;
+use App\Imports\MontaImport;
 
 class MontaNaturalController extends Controller
 {
@@ -104,6 +107,95 @@ class MontaNaturalController extends Controller
             ->with('error', 'Ocurrió un error al registrar la monta natural. Por favor, inténtelo de nuevo.');
     }
 }
+
+ public function downloadTemplate(Request $request)
+    {
+        $request->validate([
+            'predio_id' => 'required|exists:predios,id',
+        ]);
+
+        $predio_id = $request->predio_id;
+        
+        return Excel::download(
+            new MontaTemplateExport($predio_id), 
+            'plantilla_monta_natural.xlsx'
+        );
+    }
+
+    /**
+     * Importar montas naturales desde Excel
+     */
+    public function import(Request $request)
+    {
+        $request->validate([
+            'predio_id' => 'required|exists:predios,id',
+            'file' => 'required|file|mimes:xlsx,xls,csv|max:5120',
+        ]);
+
+        try {
+            Log::info('Inicio importación monta natural');
+            $file = $request->file('file');
+            $predio_id = $request->predio_id;
+
+            $import = new MontaImport($predio_id);
+            Excel::import($import, $file);
+
+            $exitosos = $import->getExitosos();
+            $duplicados = $import->getDuplicados();
+            $errores = $import->getErrores();
+            $totalDuplicados = count($duplicados);
+            $totalErrores = count($errores);
+
+            Log::info("Importación completada: {$exitosos} exitosos, {$totalDuplicados} duplicados, {$totalErrores} errores");
+
+            if ($exitosos == 0) {
+                if ($totalErrores == 0 && $totalDuplicados == 0) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'El archivo no contiene registros válidos para importar',
+                        'errores' => ['El archivo está vacío o no tiene datos válidos'],
+                        'duplicados' => [],
+                        'exitosos' => 0
+                    ], 422);
+                }
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'No se pudo importar ninguna monta natural',
+                    'errores' => $errores,
+                    'duplicados' => $duplicados,
+                    'exitosos' => 0
+                ], 422);
+            }
+
+            if ($exitosos > 0 && ($totalErrores > 0 || $totalDuplicados > 0)) {
+                return response()->json([
+                    'status' => 'partial',
+                    'message' => "Se importaron {$exitosos} monta(s) natural(es) correctamente",
+                    'exitosos' => $exitosos,
+                    'duplicados' => $duplicados,
+                    'errores' => $errores
+                ], 207);
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => "Se importaron {$exitosos} monta(s) natural(es) exitosamente",
+                'exitosos' => $exitosos,
+                'duplicados' => [],
+                'errores' => []
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error crítico en import: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error crítico al importar: ' . $e->getMessage(),
+                'errores' => [$e->getMessage()],
+                'duplicados' => [],
+                'exitosos' => 0
+            ], 500);
+        }
+    }
 
 
 }
