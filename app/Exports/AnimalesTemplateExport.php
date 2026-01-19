@@ -16,25 +16,25 @@ use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
 class AnimalesTemplateExport implements FromArray, WithStyles, WithTitle, WithDrawings
 {
     public function array(): array
-    {
-        return [
-            ['PLANTILLA DE IMPORTACIÓN DE ANIMALES'], // Fila 1
-            ['📋 INSTRUCCIONES DE USO'], // Fila 2
-            ['1. Complete los datos a partir de la fila 12'], 
-            ['2. Campos obligatorios: Número y Sexo'],
-            ['3. Formato de fecha: dd/mm/aaaa (Ejemplo: 15/01/2020)'],
-            ['4. Estados productivos disponibles:'],
-            ['   • VP = Vaca Parida  |  VS = Vaca Seca  |  TR = Toro'],
-            ['   • NV = Novilla de vientre  |  HL = Hembra de levante'],
-            ['   • ML = Macho de levante  |  CH = Cría Hembra  |  CM = Cría Macho'],
-            ['5. Para madre/padre: ingrese el código del animal ya registrado'],
-            [''], // Fila 11
-            // Fila 12: Encabezados
-            ['Número', 'Nombre', 'Sexo', 'F. Nto', 'Raza', 'Estado productivo', '# Madre', '# Padre', 'Hierro', 'Estado reprod.'],
-            ['001', 'Vaca Ejemplo', 'H', '15/01/2020', 'Holstein', 'VP', '', '', 'MF', ''],
-            ['002', 'Toro Padre', 'M', '20/05/2018', 'Brahman', 'TR', '', '', '456', ''],
-        ];
-    }
+{
+    return [
+        ['PLANTILLA DE IMPORTACIÓN DE ANIMALES'], // Fila 1
+        ['📋 INSTRUCCIONES DE USO'], // Fila 2  
+        ['1. Complete los datos a partir de la fila 12'], 
+        ['2. Campos obligatorios: Número y Sexo'],
+        ['3. Formato de fecha: dd/mm/aaaa (Ejemplo: 15/01/2020)'],
+        ['4. Estados productivos disponibles:'],
+        ['   • VP = Vaca Parida  |  VS = Vaca Seca  |  TR = Toro'],
+        ['   • NV = Novilla de vientre  |  HL = Hembra de levante'],
+        ['   • ML = Macho de levante  |  CH = Cría Hembra  |  CM = Cría Macho'],
+        ['5. Para madre/padre: ingrese el código del animal ya registrado'],
+        [''], // Fila 11
+        // Fila 12: Encabezados
+        ['Número', 'Nombre', 'Sexo', 'Fecha .Nto', 'Raza', 'Estado productivo', '# Madre', '# Padre', 'Hierro', 'Color'],
+        ['001', 'Vaca Ejemplo', 'H', '15/01/2020', 'Holstein', 'VP', '', '', 'MF', 'Bayo claro'],
+        ['002', 'Toro Padre', 'M', '20/05/2018', 'Brahman', 'TR', '', '', '456', 'Rojo'],
+    ];
+}
 
     public function drawings()
     {

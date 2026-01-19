@@ -30,14 +30,6 @@ class AnimalesImport implements ToModel, WithStartRow
         'CM' => 15, // Cria Macho
     ];
 
-    const ESTADO_REPRODUCTIVO_MAP = [
-        'PREÑADA' => 1,
-        'PRENADA' => 1,
-        'GESTANTE' => 1,
-        'VACIA' => 2,
-        'VACÍA' => 2,
-    ];
-
     public function __construct($predio_id)
     {
         $this->predio_id = $predio_id;
@@ -83,13 +75,6 @@ class AnimalesImport implements ToModel, WithStartRow
                 $this->errores[] = "Fila {$this->fila}: Estado productivo '{$estadoRaw}' no reconocido";
             }
 
-            $estadoReproductivoId = null;
-            $estadoReprodRaw = strtoupper(trim($row[9] ?? ''));
-            
-            if (!empty($estadoReprodRaw) && isset(self::ESTADO_REPRODUCTIVO_MAP[$estadoReprodRaw])) {
-                $estadoReproductivoId = self::ESTADO_REPRODUCTIVO_MAP[$estadoReprodRaw];
-            }
-
             $id_padre = null;
             if (!empty($row[7])) {
                 $padre = Animal::where('codigo', trim($row[7]))
@@ -130,10 +115,10 @@ class AnimalesImport implements ToModel, WithStartRow
                 'fecha_nacimiento' => $fecha_nacimiento,
                 'raza' => trim($row[4] ?? ''),
                 'estado_productivo_id' => $estadoProductivoId,
-                'estado_reproductivo_id' => $estadoReproductivoId,
-                'id_padre' => $id_padre,
-                'id_madre' => $id_madre,
+                'padre' => $id_padre,
+                'madre' => $id_madre,
                 'hierro' => !empty($row[8]) ? trim($row[8]) : null,
+                'color' => !empty($row[9]) ? trim($row[9]) : null, // NUEVO CAMPO
                 'created_by' => Auth::id(),
                 'estado_vida' => 1,
                 'fecha_ingreso_hato' => now(),
@@ -142,7 +127,7 @@ class AnimalesImport implements ToModel, WithStartRow
             // Guardar para procesamiento de partos
             $this->animalesCreados[] = [
                 'animal' => $animal,
-                'id_madre' => $id_madre,
+                'madre' => $id_madre,
                 'estado_productivo_id' => $estadoProductivoId,
             ];
 

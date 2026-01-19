@@ -498,7 +498,7 @@ ficha animales
                             </div>
                             <div class="d-flex space-b">
                                 <div class="form-group three-column-custom">
-                                    <label for="id_predio">ID Predio:</label>
+                                    <label for="id_predio">Predio:</label>
                                     <input disabled type="text" class="form-control" id="id_predio" name="id_predio"
                                         required>
                                 </div>
@@ -547,7 +547,7 @@ ficha animales
                                 </div>
                                 <div class="form-group two-column-custom">
                                     <label for="estado_productivo">Estado productivo:</label>
-                                    <input disabled type="text" class="form-control" id="estado_productivo"
+                                    <input disabled type="text" class="form-control" id="estado_productivo_texto"
                                         name="estado_productivo">
                                 </div>
                             </div>
@@ -1269,6 +1269,7 @@ ficha animales
         </div>
     </div>
 </div>
+
 @section('scripts')
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -1278,6 +1279,7 @@ ficha animales
 <script src="../assets/js/inventario/selectedMultipleScript.js"></script>
 <script src="../assets/js/inventario/CreateAnimalFecha.js"></script>
 <script>
+
 document.addEventListener('DOMContentLoaded', function() {
     // Abrir modal de importación
     document.getElementById('openImportModal').addEventListener('click', function() {
@@ -1350,6 +1352,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+
 <script>
     // Variable global para la instancia de la BD
         let moollishDBInstance;
@@ -1600,7 +1603,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 $.ajax({
-                    url: "{{ route('animal.store') }}", // Ruta para guardar animal
+                    url: "{{    ('animal.store') }}", // Ruta para guardar animal
                     method: "POST",
                     data: formData,
                     processData: false,
@@ -1650,231 +1653,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 });
             }
-            // --- Fin Manejo del formulario de Animal ---
-
-            // --- Lógica de Sincronización --- (Comentada)
-            /*
-            async function sincronizarTodo() {
-                if (!navigator.onLine || !moollishDBInstance) {
-                    console.log('No se puede sincronizar: Sin conexión o BD no lista.');
-                    return;
-                }
-                console.log('Iniciando sincronización general...');
-                showAlert('info', 'Iniciando sincronización de datos pendientes...');
-                const syncButton = $('#syncButton');
-                syncButton.prop('disabled', true).find('#pendingCount').html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>');
-
-                try {
-                    // 1. Sincronizar Predios (Lógica implementada aquí)
-                    console.log('Sincronizando predios...');
-                    const pendingPredios = await MoollishDB.getPendingData(moollishDBInstance, PREDIO_STORE);
-                    for (const predio of pendingPredios) {
-                        if (!predio.temp_id) {
-                            console.warn('Predio pendiente sin temp_id, no se puede mapear. ID local:', predio.id);
-                            continue;
-                        }
-                        try {
-                            const formData = new FormData();
-                            for (const key in predio) {
-                                if (key !== 'id' && key !== 'timestamp' && key !== 'temp_id') {
-                                    if (Array.isArray(predio[key])) {
-                                        predio[key].forEach(val => formData.append(key, val));
-                                    } else {
-                                        formData.append(key, predio[key]);
-                                    }
-                                }
-                            }
-                            formData.append('is_sync', 'true');
-
-                            const response = await $.ajax({
-                                url: "{{ route('predios.store') }}", // Reusa la ruta de creación
-                                method: "POST",
-                                data: formData,
-                                processData: false,
-                                contentType: false,
-                                headers: {
-                                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                                },
-                                dataType: 'json'
-                            });
-
-                            if (response.success && response.id) {
-                                const realId = response.id;
-                                console.log(`Predio sincronizado: Temp ID ${predio.temp_id} -> Real ID ${realId}`);
-                                localStorage.setItem(`predio_temp_${predio.temp_id}_real_id`, realId);
-                                await MoollishDB.removeData(moollishDBInstance, PREDIO_STORE, predio.id);
-                            } else {
-                                console.error(`Error en respuesta al sincronizar predio ${predio.temp_id}:`, response);
-                            }
-                        } catch (predioSyncError) {
-                            console.error(`Error AJAX al sincronizar predio ${predio.temp_id}:`, predioSyncError.status, predioSyncError.responseText, predioSyncError);
-                        }
-                    }
-                    console.log('Sincronización de predios terminada.');
-
-                    // 2. Sincronizar Animales (MODIFICADA)
-                    console.log('Sincronizando animales...');
-                    await syncPendingAnimales();
-
-                    // 3. Sincronizar otros (Ej: Pesos, Ubicaciones, etc. si existen)
-                    // await syncPendingPesos();
-                    // await syncPendingUbicaciones();
-
-                    console.log('Sincronización general completada.');
-                    showAlert('success', 'Sincronización completada.');
-
-                } catch (error) {
-                    console.error('Error durante la sincronización general:', error);
-                    showAlert('error', 'Ocurrió un error durante la sincronización.');
-                } finally {
-                    // Siempre actualizar contador y reactivar botón
-                    checkPendingRecords();
-                    syncButton.prop('disabled', false); // Reactivar botón (se actualizará el contador en checkPendingRecords)
-                }
-            }
-
-            async function syncPendingAnimales() {
-                if (!moollishDBInstance) return;
-                let syncOccurred = false;
-                try {
-                    const animalesPendientes = await MoollishDB.getPendingData(moollishDBInstance, ANIMAL_STORE);
-                    console.log(`Intentando sincronizar ${animalesPendientes.length} animales pendientes.`);
-
-                    for (const animal of animalesPendientes) {
-                        let animalParaEnviar = { ...animal }; // Copiar para modificar
-                        let sePuedeSincronizar = true;
-
-                        // --- Resolución de Vinculación de Predio ---
-                        if (animalParaEnviar.pendiente_vinculacion_predio && animalParaEnviar.predio_temp_id) {
-                            console.log(`Animal ${animal.id} depende de predio ${animal.predio_temp_id}. Buscando mapeo en localStorage...`);
-                            // Buscar el ID real en localStorage
-                            const realPredioId = localStorage.getItem(`predio_temp_${animalParaEnviar.predio_temp_id}_real_id`);
-
-                            if (realPredioId) {
-                                console.log(`Mapeo encontrado para ${animal.predio_temp_id}: ${realPredioId}`);
-                                animalParaEnviar.id_predio = realPredioId; // Asignar ID real
-                                // Eliminar campos temporales para el envío
-                                delete animalParaEnviar.predio_temp_id;
-                                delete animalParaEnviar.pendiente_vinculacion_predio;
-                            } else {
-                                console.log(`Mapeo no encontrado en localStorage para ${animal.predio_temp_id}. El predio aún no se ha sincronizado. Saltando animal ${animal.id}.`);
-                                sePuedeSincronizar = false; // No sincronizar este animal aún
-                            }
-                        } else if (animalParaEnviar.pendiente_vinculacion_predio && !animalParaEnviar.predio_temp_id) {
-                             console.warn(`Animal ${animal.id} marcado para vinculación pero sin predio_temp_id.`);
-                             // Decide qué hacer, ¿intentar sincronizar sin predio_id o saltar?
-                             // Por seguridad, saltaremos
-                             sePuedeSincronizar = false;
-                        }
-                        // --- Fin Resolución Vinculación ---
-
-                        if (!sePuedeSincronizar) {
-                            continue; // Saltar al siguiente animal
-                        }
-
-                        try {
-                             // Reconstruir FormData
-                             const formData = new FormData();
-                             for (const key in animalParaEnviar) {
-                                 if (key !== 'id' && key !== 'timestamp') { // Excluir claves locales
-                                     formData.append(key, animalParaEnviar[key]);
-                                 }
-                             }
-                             // Añadir flag para bypass si es necesario
-                              formData.append('bypass_service_worker', 'true');
-                              formData.append('_timestamp', Date.now());
-
-                            // Log FormData antes de enviar
-                            console.log('[syncPendingAnimales] FormData a enviar:');
-                            for (let [key, value] of formData.entries()) {
-                                console.log(`  ${key}: ${value}`);
-                            }
-
-                            // Enviar al servidor (Usar la ruta estándar 'animal.store')
-                            const response = await $.ajax({
-                                url: "{{ route('animal.store') }}", // Cambiado de animal.store.offline
-                                method: "POST",
-                                data: formData,
-                                processData: false,
-                                contentType: false,
-                headers: {
-                                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                                },
-                                dataType: 'json'
-                            });
-
-                            if (response.success && response.animal && response.animal.id_animal) {
-                                 console.log(`Animal sincronizado: Local ID ${animal.id} -> Real ID ${response.animal.id_animal}`);
-                                 // Si necesitas mapeo de ID de animal, guárdalo aquí
-                                 // await MoollishDB.saveMapping(moollishDBInstance, { temp_id: `animal_${animal.id}`, real_id: response.animal.id_animal, tipo: 'animal' });
-
-                                 // Eliminar el animal pendiente usando su ID local (animal.id)
-                                 await MoollishDB.removeData(moollishDBInstance, ANIMAL_STORE, animal.id);
-                                 syncOccurred = true;
-                } else {
-                                console.error(`Error en respuesta del servidor al sincronizar animal ${animal.id}:`, response.message || response);
-                            }
-
-                        } catch (syncError) {
-                            console.error(`Error AJAX al sincronizar animal ${animal.id}:`, syncError.status, syncError.responseText, syncError);
-                            // Podrías marcar el animal como fallido aquí si quieres
-                        }
-                    }
-                } catch (error) {
-                    console.error('Error general durante la sincronización de animales:', error);
-                    showAlert('error', 'Error durante la sincronización de animales.');
-                }
-                // No mostramos alerta aquí, se hará en sincronizarTodo
-            }
-            */
-            // --- Fin Lógica de Sincronización ---
-
-            // --- Verificación de Pendientes y Botón Sync --- (Comentado)
-            /*
-            async function checkPendingRecords() {
-                 if (!moollishDBInstance) return; // Salir si la BD no está lista
-                try {
-                    const [pendingAnimales, pendingPredios] = await Promise.all([
-                        MoollishDB.getPendingData(moollishDBInstance, ANIMAL_STORE),
-                        MoollishDB.getPendingData(moollishDBInstance, PREDIO_STORE)
-                        // Añadir aquí otras llamadas a getPendingData si hay más stores
-                    ]);
-
-                    const totalPendientes = pendingAnimales.length + pendingPredios.length; // Sumar otros counts
-                    const syncButton = $('#syncButton');
-                    const pendingCountSpan = $('#pendingCount');
-                    const syncIndicatorDiv = $('#syncIndicator');
-
-                    if (totalPendientes > 0) {
-                        pendingCountSpan.text(totalPendientes);
-                        syncIndicatorDiv.show();
-                        // Asegurarse que el botón esté habilitado si no está sincronizando
-                        if (!syncButton.find('.spinner-border').length) {
-                           syncButton.prop('disabled', false);
-                        }
-                         // Mostrar advertencia si hay animales pendientes
-                         if (pendingAnimales.length > 0) {
-                            // showWarningMessage(`${pendingAnimales.length} animales pendientes de sincronizar.`);
-                         }
-                    } else {
-                        syncIndicatorDiv.hide();
-                    }
-                } catch (error) {
-                    console.error('Error al verificar registros pendientes:', error);
-                    $('#syncIndicator').hide(); // Ocultar en caso de error
-                }
-            }
-
-            // Configurar el botón de sincronización manual
-            $('#syncButton').on('click', function() {
-                 sincronizarTodo(); // Llamar a la función de sincronización general
-            });
-            */
-            // --- Fin Verificación de Pendientes ---
-
-        }); // Fin document.ready
-
-        // ... (resto de funciones como showSuccessMessage, showErrorMessage, etc. si no están en alert-helper.js) ...
+        });
 
 </script>
 

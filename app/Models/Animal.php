@@ -45,6 +45,9 @@ class Animal extends Model
     const ESTADO_MUERTO = 2;
     const ESTADO_VENDIDO = 3;
 
+    const ESTADO_NO_ACTIVO = 4; //ejemplo: donado, perdido, robado, etc.
+    
+
     // En User.php
 
 
@@ -107,10 +110,18 @@ class Animal extends Model
         return $this->hasMany(AnimalEstadoReproductivo::class, 'id_animal');
     }
 
-    public function madre()
-    {
-        return $this->belongsTo(Animal::class, 'madre', 'id_animal');
-    }
+public function madreRelacion()
+{
+    return $this->belongsTo(Animal::class, 'madre', 'id_animal');
+}
+
+
+
+public function padre()
+{
+    return $this->belongsTo(Animal::class, 'padre', 'id_animal');
+}
+
 
     public function criasViaPivot()
     {

@@ -596,10 +596,19 @@ class PartosController extends Controller
     }
 
 
-    public function downloadTemplate()
-    {
-        return Excel::download(new PartosTemplateExport(), 'plantilla_partos.xlsx');
-    }
+    public function downloadTemplate(Request $request)
+{
+    $request->validate([
+        'predio_id' => 'required|exists:predios,id'
+    ]);
+
+    $predio_id = $request->predio_id;
+    
+    return Excel::download(
+        new PartosTemplateExport($predio_id), 
+        'plantilla_partos.xlsx'
+    );
+}
 
     /**
      * Importar partos desde Excel

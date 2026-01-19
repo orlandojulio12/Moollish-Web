@@ -632,17 +632,28 @@ Partos
                 </div>
 
                 <div class="text-center mb-4">
-                    <a href="{{ route('partos.template') }}" class="btn btn-success">
+                    <div class="mb-3">
+                        <label for="predio_id_template_partos" class="form-label">
+                            <strong>Seleccione el Predio <span class="text-danger">*</span></strong>
+                        </label>
+                        <select class="form-control" id="predio_id_template_partos" required>
+                            <option value="">Seleccionar Predio</option>
+                            @foreach($predios as $predio)
+                            <option value="{{ $predio->id }}">{{ $predio->nombre_predio }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <button type="button" id="downloadTemplatePartosBtn" class="btn btn-success" disabled>
                         <span class="material-symbols-outlined me-2">download</span>
                         Descargar Plantilla Excel
-                    </a>
+                    </button>
                 </div>
 
                 <form id="importPartosForm" action="{{ route('partos.import') }}" method="POST"
                     enctype="multipart/form-data">
                     @csrf
                     <div class="row">
-                        <div class="col-12 mb-3">
+                        {{-- <div class="col-12 mb-3">
                             <label for="predio_id_import_partos" class="form-label">Predio <span
                                     class="text-danger">*</span></label>
                             <select class="form-control" name="predio_id" id="predio_id_import_partos" required>
@@ -651,7 +662,7 @@ Partos
                                 <option value="{{ $predio->id }}">{{ $predio->nombre_predio }}</option>
                                 @endforeach
                             </select>
-                        </div>
+                        </div> --}}
                         <div class="col-12 mb-3">
                             <label for="file_import_partos" class="form-label">Archivo Excel <span
                                     class="text-danger">*</span></label>
@@ -707,8 +718,9 @@ Partos
 <script src="../assets/js/inventario/otropadre.js"></script>
 <script src="https://cdn.datatables.net/2.1.8/js/dataTables.js"></script>
 
+
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function() {
     // Modal importación
     const btnImport = document.getElementById('openImportModalPartos');
     if (btnImport) {
@@ -952,6 +964,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+// Habilitar descarga plantilla solo si selecciona predio
+const predioSelect = document.getElementById('predio_id_template_partos');
+const downloadBtn = document.getElementById('downloadTemplatePartosBtn');
+
+if (predioSelect && downloadBtn) {
+    predioSelect.addEventListener('change', function() {
+        downloadBtn.disabled = !this.value;
+    });
+
+    downloadBtn.addEventListener('click', function() {
+        const predioId = predioSelect.value;
+        if (predioId) {
+            window.location.href = `{{ route('partos.template') }}?predio_id=${predioId}`;
+        }
+    });
+}
 
 // Manejo de mensajes flash de sesión (solo para casos excepcionales)
 @if(session('error'))

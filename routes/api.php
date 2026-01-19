@@ -19,8 +19,9 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-/* Llenado dinamico para fichha */
+/* Llenado dinamico para ficha */
 Route::get('/animal/{codigo}', [AnimalesController::class, 'getAnimalDetails']);
+
 Route::post('/login', [AuthenticatedSessionController::class, 'store']);
 Route::post('/forgot-password', [ForgotPasswordController::class, 'apiSendResetLinkEmail']);
 Route::post('/password/forgot', [ResetPasswordController::class, 'sendResetLinkEmail']);

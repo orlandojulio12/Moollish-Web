@@ -34,6 +34,7 @@ use App\Models\Movimientos;
 use App\Imports\AnimalesImport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\AnimalesTemplateExport;
+use Psy\Readline\Hoa\Console;
 
 class AnimalesController extends Controller
 {
@@ -90,58 +91,58 @@ class AnimalesController extends Controller
             'insumosConStock' // Pasar la lista filtrada por stock
         ));
     }
-  public function import(Request $request)
-{
-    $request->validate([
-        'predio_id' => 'required|exists:predios,id',
-        'file' => 'required|file|mimes:xlsx,xls,csv|max:5120',
-    ]);
+    public function import(Request $request)
+    {
+        $request->validate([
+            'predio_id' => 'required|exists:predios,id',
+            'file' => 'required|file|mimes:xlsx,xls,csv|max:5120',
+        ]);
 
-    try {
-        $file = $request->file('file');
-        $predio_id = $request->predio_id;
+        try {
+            $file = $request->file('file');
+            $predio_id = $request->predio_id;
 
-        $import = new AnimalesImport($predio_id);
-        
-        Excel::import($import, $file);
+            $import = new AnimalesImport($predio_id);
 
-        // Registrar partos automáticos
-        $import->registrarPartosAutomaticos();
+            Excel::import($import, $file);
 
-        $errores = $import->getErrores();
-        
-        if (!empty($errores)) {
+            // Registrar partos automáticos
+            $import->registrarPartosAutomaticos();
+
+            $errores = $import->getErrores();
+
+            if (!empty($errores)) {
+                return redirect()->back()
+                    ->with('warning', 'Importación completada con advertencias:')
+                    ->with('errores', $errores);
+            }
+
+            return redirect()->back()->with('success', 'Animales importados exitosamente');
+
+        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+            $failures = $e->failures();
+            $errores = [];
+
+            foreach ($failures as $failure) {
+                $errores[] = "Fila {$failure->row()}: " . implode(', ', $failure->errors());
+            }
+
             return redirect()->back()
-                ->with('warning', 'Importación completada con advertencias:')
+                ->with('error', 'Error de validación')
                 ->with('errores', $errores);
-        }
 
-        return redirect()->back()->with('success', 'Animales importados exitosamente');
-
-    } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
-        $failures = $e->failures();
-        $errores = [];
-        
-        foreach ($failures as $failure) {
-            $errores[] = "Fila {$failure->row()}: " . implode(', ', $failure->errors());
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error al importar: ' . $e->getMessage());
         }
-        
-        return redirect()->back()
-            ->with('error', 'Error de validación')
-            ->with('errores', $errores);
-        
-    } catch (\Exception $e) {
-        return redirect()->back()->with('error', 'Error al importar: ' . $e->getMessage());
     }
-}
 
-/**
- * Descargar plantilla Excel
- */
-public function downloadTemplate()
-{
-    return Excel::download(new AnimalesTemplateExport(), 'plantilla_animales.xlsx');
-}
+    /**
+     * Descargar plantilla Excel
+     */
+    public function downloadTemplate()
+    {
+        return Excel::download(new AnimalesTemplateExport(), 'plantilla_animales.xlsx');
+    }
 
 
     public function medicacionPost(Request $request)
@@ -153,13 +154,13 @@ public function downloadTemplate()
             // Validar los datos del formulario, incluyendo los nuevos campos
             $validatedData = $request->validate([
                 'fecha_medicacion' => 'required|date',
-                'motivo'           => 'required|string|max:255', // Permitir cualquier string (incluido 'Otro')
-                'id_animal'        => 'required|exists:animales,id_animal',
-                'observacion'      => 'nullable|string',
-                'id_veterinario'   => 'required|exists:veterinarios,id',
-                'id_predio'        => 'required|exists:predios,id',
+                'motivo' => 'required|string|max:255', // Permitir cualquier string (incluido 'Otro')
+                'id_animal' => 'required|exists:animales,id_animal',
+                'observacion' => 'nullable|string',
+                'id_veterinario' => 'required|exists:veterinarios,id',
+                'id_predio' => 'required|exists:predios,id',
                 // Nuevos campos
-                'insumo_id'        => 'nullable|exists:insumos,id',
+                'insumo_id' => 'nullable|exists:insumos,id',
                 'cantidad' => 'nullable|required_with:insumo_id|numeric|min:0.01',
                 'via_administracion' => 'nullable|string|max:50|required_with:insumo_id',
             ], [
@@ -173,13 +174,13 @@ public function downloadTemplate()
             // Preparar datos para crear Medicacion
             $medicacionData = [
                 'fecha_medicacion' => $validatedData['fecha_medicacion'],
-                'motivo'           => $validatedData['motivo'],
-                'id_animal'        => $validatedData['id_animal'],
-                'observacion'      => $validatedData['observacion'],
-                'id_veterinario'   => $validatedData['id_veterinario'],
-                'id_predio'        => $validatedData['id_predio'], // Guardar predio
+                'motivo' => $validatedData['motivo'],
+                'id_animal' => $validatedData['id_animal'],
+                'observacion' => $validatedData['observacion'],
+                'id_veterinario' => $validatedData['id_veterinario'],
+                'id_predio' => $validatedData['id_predio'], // Guardar predio
                 // Añadir nuevos campos si están presentes
-                'insumo_id'        => $validatedData['insumo_id'] ?? null,
+                'insumo_id' => $validatedData['insumo_id'] ?? null,
                 'cantidad' => $validatedData['cantidad'] ?? null,
                 'via_administracion' => $validatedData['via_administracion'] ?? null,
             ];
@@ -192,8 +193,8 @@ public function downloadTemplate()
                 dd('Error al crear medicación', $e->getMessage(), $e->getTraceAsString());
             } */
 
-                 $medicacion = Medicacion::create($medicacionData);
-                Log::info('Registro de medicación creado', ['medicacion_id' => $medicacion->id]);
+            $medicacion = Medicacion::create($medicacionData);
+            Log::info('Registro de medicación creado', ['medicacion_id' => $medicacion->id]);
 
             // Procesar salida de insumo si se seleccionó uno
             if (!empty($validatedData['insumo_id'])) {
@@ -252,7 +253,8 @@ public function downloadTemplate()
                     $cantidadesInventarioActualizar = [];
 
                     foreach ($inventarioItems as $item) {
-                        if ($cantidadRestantePorDescontar <= 0) break;
+                        if ($cantidadRestantePorDescontar <= 0)
+                            break;
 
                         $cantidadADescontarEsteItem = min($cantidadRestantePorDescontar, $item->cantidad);
                         $costoItemDescontado = $cantidadADescontarEsteItem * $item->costo_unitario;
@@ -424,16 +426,16 @@ public function downloadTemplate()
     {
         // Validar los datos del formulario
         $request->validate([
-            'id_predio'           => 'required|exists:predios,id',
-            'codigo_embrion'      => 'required|string',
-            'nombre_reproductor'  => 'required|string',
-            'raza_reproductor'    => 'required|string',
-            'vaca_donadora'       => 'required|string',
-            'raza_vaca'           => 'required|string',
-            'vendedor'            => 'required|string',
-            'costo_unidad'        => 'required|numeric',
-            'fecha_entrada'       => 'required|date',
-            'cantidad'            => 'required|integer|min:1',
+            'id_predio' => 'required|exists:predios,id',
+            'codigo_embrion' => 'required|string',
+            'nombre_reproductor' => 'required|string',
+            'raza_reproductor' => 'required|string',
+            'vaca_donadora' => 'required|string',
+            'raza_vaca' => 'required|string',
+            'vendedor' => 'required|string',
+            'costo_unidad' => 'required|numeric',
+            'fecha_entrada' => 'required|date',
+            'cantidad' => 'required|integer|min:1',
         ]);
 
         // Calcular el valor total (cantidad * costo por unidad)
@@ -443,17 +445,17 @@ public function downloadTemplate()
 
         // Crear el registro de embrión
         embrion::create([
-            'id_predio'           => $request->input('id_predio'),
-            'codigo_embrion'      => $request->input('codigo_embrion'),
-            'nombre_reproductor'  => $request->input('nombre_reproductor'),
-            'raza_reproductor'    => $request->input('raza_reproductor'),
-            'vaca_donadora'       => $request->input('vaca_donadora'),
-            'raza_vaca'           => $request->input('raza_vaca'),
-            'vendedor'            => $request->input('vendedor'),
-            'costo_unidad'        => $costo,
-            'fecha_entrada'       => $request->input('fecha_entrada'),
-            'cantidad'            => $cantidad,
-            'valor_total'         => $valor_total,
+            'id_predio' => $request->input('id_predio'),
+            'codigo_embrion' => $request->input('codigo_embrion'),
+            'nombre_reproductor' => $request->input('nombre_reproductor'),
+            'raza_reproductor' => $request->input('raza_reproductor'),
+            'vaca_donadora' => $request->input('vaca_donadora'),
+            'raza_vaca' => $request->input('raza_vaca'),
+            'vendedor' => $request->input('vendedor'),
+            'costo_unidad' => $costo,
+            'fecha_entrada' => $request->input('fecha_entrada'),
+            'cantidad' => $cantidad,
+            'valor_total' => $valor_total,
         ]);
 
         return redirect()->route('embriones.index')
@@ -528,11 +530,11 @@ public function downloadTemplate()
     {
         // 1. Validar los datos que realmente se envían desde la vista
         $request->validate([
-            'predio_id'           => 'required|integer|exists:predios,id',
+            'predio_id' => 'required|integer|exists:predios,id',
             'fecha_transferencia' => 'required|date',
-            'embrion_id'          => 'required|integer|exists:embriones,id',
-            'receptora_id'        => 'required|integer|exists:animales,id_animal',
-            'observaciones'       => 'nullable|string',
+            'embrion_id' => 'required|integer|exists:embriones,id',
+            'receptora_id' => 'required|integer|exists:animales,id_animal',
+            'observaciones' => 'nullable|string',
         ]);
 
         // 2. Chequear permisos según el rol del usuario
@@ -576,11 +578,11 @@ public function downloadTemplate()
         // 4. Intentar crear la transferencia
         try {
             TransferenciaEmbrion::create([
-                'predio_id'           => $request->predio_id,
+                'predio_id' => $request->predio_id,
                 'fecha_transferencia' => $request->fecha_transferencia,
-                'id_embrion'          => $request->embrion_id,
-                'id_vaca'             => $request->receptora_id, // asignamos la receptora al campo id_vaca
-                'observaciones'       => $request->observaciones,
+                'id_embrion' => $request->embrion_id,
+                'id_vaca' => $request->receptora_id, // asignamos la receptora al campo id_vaca
+                'observaciones' => $request->observaciones,
             ]);
 
             return redirect()->route('transferencia.hembriones')
@@ -651,14 +653,14 @@ public function downloadTemplate()
     {
         // Validación de los datos enviados desde el formulario
         $request->validate([
-            'codigo'            => 'required|string|max:255|unique:pajillas_semen,codigo_pajilla',
+            'codigo' => 'required|string|max:255|unique:pajillas_semen,codigo_pajilla',
             'nombre_reproductor' => 'nullable|string|max:255',
-            'raza'              => 'required|string|max:255',
-            'vendedor'          => 'nullable|string|max:255',
-            'costo_unidad'      => 'required|numeric|min:0',
-            'cantidad'          => 'required|integer|min:1',
-            'id_predio'         => 'required|integer|min:1',
-            'fecha_entrada'     => 'required|date',
+            'raza' => 'required|string|max:255',
+            'vendedor' => 'nullable|string|max:255',
+            'costo_unidad' => 'required|numeric|min:0',
+            'cantidad' => 'required|integer|min:1',
+            'id_predio' => 'required|integer|min:1',
+            'fecha_entrada' => 'required|date',
         ]);
         try {
             // Crear el registro de pajilla
@@ -754,21 +756,38 @@ public function downloadTemplate()
 
         $animal = Animal::where('id_animal', $codigo)
             ->with([
-                'ultimoParto',
-                'lote',
-                'potrero',
-                'predio',
-                'movimientos.lote',
-                'movimientos.potrero',
-                'movimientos.predio',
-                'pesajes',
-                'estadoProductivoActual',
-                'estadoReproductivoActual'
-            ])
+                    'ultimoParto',
+                    'ultimoTacto',
+                    'lote',
+                    'potrero',
+                    'predio',
+                    'movimientos.lote',
+                    'movimientos.potrero',
+                    'movimientos.predio',
+                    'pesajes',
+                    'estadoProductivoActual',
+                    'estadoReproductivoActual',
+                    'madreRelacion',
+                    'padre'
+                ])
             ->first();
 
         if ($animal) {
             $ultimoParto = $animal->ultimoParto ? $animal->ultimoParto->fecha_parto : null;
+            $madreTexto = null;
+            $padreTexto = null;
+
+           
+
+if ($animal->madreRelacion) {
+    $madreTexto = $animal->madreRelacion->codigo . ' - ' . $animal->madreRelacion->nombre;
+}
+
+
+            if ($animal->padre) {
+                $padreTexto = $animal->padre->codigo . ' - ' . $animal->padre->nombre;
+            }
+
 
             return response()->json([
                 'success' => true,
@@ -778,10 +797,13 @@ public function downloadTemplate()
                 'estadoReproductivo' => $animal->estadoReproductivoActual,
                 'movimientos' => $animal->movimientos,
                 'ultimo_parto' => $ultimoParto,
-                'ultimoTacto' => $animal->ultimoTacto, // Agrega la información del último tacto
-
+                'ultimoTacto' => $animal->ultimoTacto,
+                'madre_texto' => $madreTexto,
+                'padre_texto' => $padreTexto,
             ]);
+
         }
+
 
         return response()->json([
             'success' => false,
@@ -1326,17 +1348,17 @@ public function downloadTemplate()
                     'id_predio' => $inventario->predio->nombre_predio,
                     'estado' => $inventario->estado,
                     'animales' => collect($animales)->map(function ($id_animal) {
-                        $animalDetails = Animal::select('id_animal', 'codigo', 'nombre', 'sexo', 'raza')
-                            ->where('id_animal', $id_animal)
-                            ->first();
-                        return $animalDetails ? $animalDetails->toArray() : null;
-                    })->filter()->values()->all(), // Filtrar valores nulos
+                    $animalDetails = Animal::select('id_animal', 'codigo', 'nombre', 'sexo', 'raza')
+                        ->where('id_animal', $id_animal)
+                        ->first();
+                    return $animalDetails ? $animalDetails->toArray() : null;
+                })->filter()->values()->all(), // Filtrar valores nulos
                     'animales_faltantes' => collect($animalesFaltantes)->map(function ($id_animal) {
-                        $animalDetails = Animal::select('id_animal', 'codigo', 'nombre', 'sexo', 'raza')
-                            ->where('id_animal', $id_animal)
-                            ->first();
-                        return $animalDetails ? $animalDetails->toArray() : null;
-                    })->filter()->values()->all(), // Filtrar valores nulos
+                    $animalDetails = Animal::select('id_animal', 'codigo', 'nombre', 'sexo', 'raza')
+                        ->where('id_animal', $id_animal)
+                        ->first();
+                    return $animalDetails ? $animalDetails->toArray() : null;
+                })->filter()->values()->all(), // Filtrar valores nulos
                     'cantidad_animales' => count($animales),
                     'cantidad_faltantes' => count($animalesFaltantes),
                     'fecha_inicio' => $inventario->fecha_inicio,
@@ -1347,12 +1369,12 @@ public function downloadTemplate()
         // Filtrar animales vivos asociados al usuario
         $animales = Animal::filtrarPorEstadoYPredio($user)
             ->with([
-                'estadoProductivo',
-                'estadoReproductivo',
-                'lote',
-                'potrero',
-                'ultimoParto' // Incluimos la relación del último parto
-            ])
+                    'estadoProductivo',
+                    'estadoReproductivo',
+                    'lote',
+                    'potrero',
+                    'ultimoParto' // Incluimos la relación del último parto
+                ])
             ->get()
             ->map(function ($animal) {
                 // Calcular edad en años y meses
@@ -1360,7 +1382,7 @@ public function downloadTemplate()
                 $edadAnios = $fechaNacimiento->diffInYears(now());
                 $edadMeses = $fechaNacimiento->diffInMonths(now()) % 12;
 
-                 // Calcular días de preñez basados en la fecha del último parto
+                // Calcular días de preñez basados en la fecha del último parto
                 $diasDePrenez = 'N/A';
 
                 if (
@@ -1402,15 +1424,15 @@ public function downloadTemplate()
             DB::beginTransaction();
 
             $request->validate([
-                'id_predio'            => 'required|exists:predios,id',
-                'observaciones'        => 'nullable|string',
-                'fecha_fin'            => 'nullable|date',
-                'fecha_inicio'         => 'nullable|date',
-                'nombre_inventario'    => 'nullable|string',
-                'estado'               => 'nullable|string',
-                'animales'             => 'nullable|array',
-                'animales.*'           => 'nullable|exists:animales,id_animal',
-                'animales_faltantes'   => 'nullable|array',
+                'id_predio' => 'required|exists:predios,id',
+                'observaciones' => 'nullable|string',
+                'fecha_fin' => 'nullable|date',
+                'fecha_inicio' => 'nullable|date',
+                'nombre_inventario' => 'nullable|string',
+                'estado' => 'nullable|string',
+                'animales' => 'nullable|array',
+                'animales.*' => 'nullable|exists:animales,id_animal',
+                'animales_faltantes' => 'nullable|array',
                 'animales_faltantes.*' => 'nullable|exists:animales,id_animal',
             ]);
 
@@ -1419,15 +1441,15 @@ public function downloadTemplate()
             $animalesFaltantes = $request->has('animales_faltantes') ? $request->animales_faltantes : null;
 
             $inventario = Inventario::create([
-                'id_predio'           => $request->id_predio,
-                'fecha_fin'           => $request->fecha_fin,
-                'fecha_inicio'        => $request->fecha_inicio,
-                'estado'              => $request->estado,
-                'nombre_inventario'   => $request->nombre_inventario,
-                'observaciones'       => $request->observaciones,
-                'creado_por'          => Auth::id(),
-                'animales'            => $animales,
-                'animales_faltantes'  => $animalesFaltantes,
+                'id_predio' => $request->id_predio,
+                'fecha_fin' => $request->fecha_fin,
+                'fecha_inicio' => $request->fecha_inicio,
+                'estado' => $request->estado,
+                'nombre_inventario' => $request->nombre_inventario,
+                'observaciones' => $request->observaciones,
+                'creado_por' => Auth::id(),
+                'animales' => $animales,
+                'animales_faltantes' => $animalesFaltantes,
             ]);
 
 
@@ -1533,13 +1555,18 @@ public function downloadTemplate()
         $rules = [
             'id_predio' => ['required_without:predio_temp_id', 'nullable', 'exists:predios,id'], // ID real o null si viene temp_id
             'predio_temp_id' => ['required_without:id_predio', 'nullable', 'string'], // ID temporal si no hay ID real
-            'codigo' => ['required', 'string', 'max:255', Rule::unique('animales')->where(function ($query) use ($request) {
-                // Asegurar unicidad dentro del predio (si ya tenemos el id_predio)
-                if ($request->filled('id_predio')) {
-                    return $query->where('id_predio', $request->id_predio);
-                }
-                return $query; // Si no hay id_predio aún, solo valida unicidad global (menos ideal)
-            })],
+            'codigo' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('animales')->where(function ($query) use ($request) {
+                    // Asegurar unicidad dentro del predio (si ya tenemos el id_predio)
+                    if ($request->filled('id_predio')) {
+                        return $query->where('id_predio', $request->id_predio);
+                    }
+                    return $query; // Si no hay id_predio aún, solo valida unicidad global (menos ideal)
+                })
+            ],
             'fecha_nacimiento' => ['required', 'date'],
             'sexo' => ['required', 'in:macho,hembra'],
             'nombre' => ['nullable', 'string', 'max:255'],
