@@ -292,6 +292,10 @@
     <script src="{{ asset('assets/vendors/js/dataTables.min.js') }}"></script>
     <script src="{{ asset('assets/vendors/js/dataTables.bs5.min.js') }} "></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.27/dist/sweetalert2.all.min.js"></script>
+
+ <!-- esto se lo acabo de agg ahora par alos modales 19/01/2026 quitar si daña algo} -->
+    <script src="{{ asset('assets/js/bootstrap.bundle.min.js') }}"></script>
+
     <!-- vendors.min.js {always must need to be top} -->
 
     <script>

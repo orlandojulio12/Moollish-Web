@@ -399,7 +399,7 @@
                     </div>
                 </a>
 
-                  <a href="{{ route('produccionAnimal') }}">
+                  <a href="{{ route('productivos.index') }}">
                 <div class="grid-card-end">
                     <span class="light-text">Listados</span>
                     <span class="title-card-end">Produccion animal</span>
@@ -410,7 +410,7 @@
                 </div>
                 </a>
 
-                <a href="{{ route('reproduccionAnimal') }}">
+                <a href="{{ route('reproductivos.index') }}">
                     <div class="grid-card-end">
                         <span class="light-text">Listados</span>
                         <span class="title-card-end">Reproduccion animal</span>

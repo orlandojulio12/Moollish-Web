@@ -60,6 +60,9 @@ use App\Http\Controllers\InsumoController;
 use App\Http\Controllers\MasterController;
 use App\Models\Predios;
 use Illuminate\Http\Request;
+use App\Http\Controllers\ProductivosController;
+use App\Http\Controllers\ReproductivosController;
+
 
 
 
@@ -365,6 +368,71 @@ Route::middleware([
     Route::get('/DiasAbiertos/index', [PartosController::class, 'diasAbiertos'])->name('diasAbiertos.index');
     Route::get('/inventarioFisico/index', [AnimalesController::class, 'inventarioFisico'])->name('inventarioFisico.index');
     Route::post('/inventarioFisico/store', [AnimalesController::class, 'storeInventario'])->name('inventarioFisico.store');
+
+    // Listados Productivos
+Route::prefix('productivos')
+    ->middleware('auth')
+    ->group(function () {
+
+        // Dashboard Productivos (selector de predio + contadores)
+        Route::get('/', [ProductivosController::class, 'index'])
+            ->name('productivos.index');
+
+        // CRÍAS
+        Route::get('/crias', [ProductivosController::class, 'crias'])
+            ->name('productivos.crias');
+
+        // LEVANTES
+        Route::get('/levantes/machos', [ProductivosController::class, 'levantesMachos'])
+            ->name('productivos.levantes.machos');
+
+        Route::get('/levantes/hembras', [ProductivosController::class, 'levantesHembras'])
+            ->name('productivos.levantes.hembras');
+
+        // NOVILLAS DE VIENTRE
+        Route::get('/novillas-vientre', [ProductivosController::class, 'novillasVientre'])
+            ->name('productivos.novillas.vientre');
+
+        // TOROS
+        Route::get('/toros', [ProductivosController::class, 'toros'])
+            ->name('productivos.toros');
+
+        // TORETES DE CEBA
+        Route::get('/toretes-ceba', [ProductivosController::class, 'toretesCeba'])
+            ->name('productivos.toretes.ceba');
+
+        // VACAS PARIDAS
+        Route::get('/vacas-paridas', [ProductivosController::class, 'vacasParidas'])
+            ->name('productivos.vacas.paridas');
+
+        // VACAS SECAS
+        Route::get('/vacas-secas', [ProductivosController::class, 'vacasSecas'])
+            ->name('productivos.vacas.secas');
+
+        Route::get('/animal/{id}', [ProductivosController::class, 'detalleAnimal'])
+            ->name('productivos.detalle');
+    });
+
+    // Listados Reproductivos
+    Route::prefix('reproductivos')
+    ->middleware('auth')
+    ->group(function () {
+
+        Route::get('/', [ReproductivosController::class, 'index'])
+            ->name('reproductivos.index');
+
+        Route::get('/vacias', [ReproductivosController::class, 'vacias'])
+            ->name('reproductivos.vacias');
+
+        Route::get('/prenadas', [ReproductivosController::class, 'prenadas'])
+            ->name('reproductivos.prenadas');
+
+        Route::get('/animal/{id}', [ReproductivosController::class, 'detalleAnimal'])
+            ->name('reproductivos.detalle');
+    });
+
+
+
 
     // Ruta para obtener los datos de un inventario específico para edición
     Route::get('/inventarios/{id}/edit', [AnimalesController::class, 'editInventario'])->name('inventarios.edit');
