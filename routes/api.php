@@ -13,6 +13,7 @@ use App\Http\Controllers\PrediosController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\HistorialAnimalController;
 
 
 Route::get('/user', function (Request $request) {
@@ -21,6 +22,16 @@ Route::get('/user', function (Request $request) {
 
 /* Llenado dinamico para ficha */
 Route::get('/animal/{codigo}', [AnimalesController::class, 'getAnimalDetails']);
+
+Route::prefix('/animales')->group(function () {
+    
+    // Buscar animales por código (identificacion_oficial), nombre o chip (identificacion_electronica)
+    Route::get('/buscar', [HistorialAnimalController::class, 'buscarAnimales']);
+    
+    // Obtener historial completo de un animal
+    Route::post('/historial', [HistorialAnimalController::class, 'obtenerHistorialCompleto']);
+    
+});
 
 Route::post('/login', [AuthenticatedSessionController::class, 'store']);
 Route::post('/forgot-password', [ForgotPasswordController::class, 'apiSendResetLinkEmail']);
