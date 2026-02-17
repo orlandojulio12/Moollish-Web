@@ -136,13 +136,26 @@ Route::middleware([
     Route::get('predios/{id}/caracterizar', [PrediosController::class, 'caracterizar'])->name('predios.caracterizar');
     Route::post('predios/{id}/caracterizar', [PrediosController::class, 'storeCaracterizacion'])->name('predios.storeCaracterizacion');
     Route::put('predios/{id}/actualizar-caracterizacion', [PrediosController::class, 'updatadeCaracterizacion'])->name('predios.updatadeCaracterizacion');
+    
     //exporte de Excel predios
+    // Route::get('ExportePredio', [exportePredioController::class, 'show'])->name('ExportePredio');
+    // Route::get('/export-informacion-del-predio', [exportePredioController::class, 'exportarInformacionDelPredio'])->name('exportarInformacionDelPredio');
+    // Route::get('/export-Bgp', [exportePredioController::class, 'exportBgp'])->name('exportBgp');
+    // Route::get('/export-riesgo-epidemiologico', [exportePredioController::class, 'exportRiesgoEpidemiologico'])->name('export.riesgo.epidemiologico');
+    // Route::get('export/servicios-ambientales', [exportePredioController::class, 'exportServiciosAmbientales'])->name('exportServiciosAmbientales');
+    // Route::get('export/censo', [exportePredioController::class, 'exportCenso'])->name('exportCenso');
+    
+    // Agrupar las rutas de exportación con middleware para solo admin (rol 1)
+ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('ExportePredio', [exportePredioController::class, 'show'])->name('ExportePredio');
-    Route::get('/export-informacion-del-predio', [exportePredioController::class, 'exportarInformacionDelPredio'])->name('exportarInformacionDelPredio');
-    Route::get('/export-Bgp', [exportePredioController::class, 'exportBgp'])->name('exportBgp');
+    Route::get('/buscar-predios', [exportePredioController::class, 'buscarPredios'])->name('buscarPredios'); 
+   Route::get('/export-informacion-del-predio', [exportePredioController::class, 'exportarInformacionDelPredio'])->name('exportarInformacionDelPredio');
+   Route::get('/export-Bgp', [exportePredioController::class, 'exportBgp'])->name('exportBgp');
     Route::get('/export-riesgo-epidemiologico', [exportePredioController::class, 'exportRiesgoEpidemiologico'])->name('export.riesgo.epidemiologico');
     Route::get('export/servicios-ambientales', [exportePredioController::class, 'exportServiciosAmbientales'])->name('exportServiciosAmbientales');
     Route::get('export/censo', [exportePredioController::class, 'exportCenso'])->name('exportCenso');
+ });
+    
     Route::get('Seccion2/{id}', [PrediosController::class, 'showSeccion2'])->name('Seccion2');
 
     //asignacion de predios

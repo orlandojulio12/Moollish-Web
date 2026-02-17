@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Predios;
+use App\Models\RazasGanado;
 
 class ManGenGanado extends Model
 {
@@ -48,5 +50,9 @@ class ManGenGanado extends Model
     public function razas()
     {
         return $this->belongsTo(RazasGanado::class, 'id_raza_gan');
+    }
+    public function predio()
+    {
+        return $this->belongsTo(Predios::class, 'id_predio');
     }
 }

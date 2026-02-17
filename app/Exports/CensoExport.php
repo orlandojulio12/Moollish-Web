@@ -19,49 +19,64 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Concerns\WithTitle; // Agregar esta interfaz
+use Maatwebsite\Excel\Concerns\WithTitle;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
 class CensoExport implements WithMultipleSheets
 {
+    protected $prediosFiltrados;
+
+    public function __construct($prediosFiltrados = 'all')
+    {
+        $this->prediosFiltrados = $prediosFiltrados;
+    }
+
     public function sheets(): array
     {
         return [
-            new CensoBovinoExport(),             // Hoja para BOVINOS
-            new CensoBufalinoExport(),           // Hoja para BUFALINOS
-            new CensoPorcinoExport(),            // Hoja para PORCINOS
-            new CensoEquidoExport(),             // Hoja para ÉQUIDOS
-            new CensoOvinoCaprinoExport(),       // Hoja para OVINOS Y CAPRINOS
-            new CensoOtrasEspecExport(),         // Hoja para OTRAS ESPECIES
-            new CensoPezExport(),                // Hoja para PECES
-            new CensoCructaceoExport(),          // Hoja para CRUSTÁCEOS
-            new CensoAvesComercialesExport(),    // Hoja para AVES COMERCIALES
-            new CensoAvesTraspatioExport(),      // Hoja para OTRAS AVES
-            new CensoAbejasExport(),             // Hoja para ABEJAS
-            new IdentificacionAnimalExport(),    // Hoja para IDENTIFICACIÓN ANIMAL
+            new CensoBovinoExport($this->prediosFiltrados),
+            new CensoBufalinoExport($this->prediosFiltrados),
+            new CensoPorcinoExport($this->prediosFiltrados),
+            new CensoEquidoExport($this->prediosFiltrados),
+            new CensoOvinoCaprinoExport($this->prediosFiltrados),
+            new CensoOtrasEspecExport($this->prediosFiltrados),
+            new CensoPezExport($this->prediosFiltrados),
+            new CensoCructaceoExport($this->prediosFiltrados),
+            new CensoAvesComercialesExport($this->prediosFiltrados),
+            new CensoAvesTraspatioExport($this->prediosFiltrados),
+            new CensoAbejasExport($this->prediosFiltrados),
+            new IdentificacionAnimalExport($this->prediosFiltrados),
         ];
     }    
 }
 
-
+// ==================== HOJA 1: BOVINOS ====================
 class CensoBovinoExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithStyles, WithTitle
 {
-    /**
-     * Retornar los datos de la tabla 'censo_bovinos' con relaciones
-     */
-    public function collection()
+    protected $prediosFiltrados;
+
+    public function __construct($prediosFiltrados = 'all')
     {
-        return CensoBovino::with(['predio'])->get();
+        $this->prediosFiltrados = $prediosFiltrados;
     }
 
-    /**
-     * Mapeo de las columnas para que muestre los nombres en lugar de los IDs
-     */
+    public function collection()
+    {
+        $query = CensoBovino::with(['predio']);
+
+        if ($this->prediosFiltrados !== 'all' && !empty($this->prediosFiltrados)) {
+            $query->whereIn('id_predio', $this->prediosFiltrados);
+        }
+
+        return $query->orderBy('id_predio')->get();
+    }
+
     public function map($censoBovino): array
     {
         return [
-            $censoBovino->predio ? $censoBovino->predio->nombre_predio : 'Sin predio',  // Nombre del predio
+            $censoBovino->predio ? $censoBovino->predio->nombre_predio : 'Sin predio',
+            // HEMBRAS
             $censoBovino->men_3_meses_h,
             $censoBovino->tres_a_9_meses_h,
             $censoBovino->nueve_a_12_meses_h,
@@ -70,6 +85,7 @@ class CensoBovinoExport implements FromCollection, WithHeadings, WithMapping, Sh
             $censoBovino->tres_a_5_años_h,
             $censoBovino->may_5_años_h,
             $censoBovino->total_hembras,
+            // MACHOS
             $censoBovino->men_3_meses_m,
             $censoBovino->tres_a_9_meses_m,
             $censoBovino->nueve_a_12_meses_m,
@@ -77,13 +93,13 @@ class CensoBovinoExport implements FromCollection, WithHeadings, WithMapping, Sh
             $censoBovino->dos_a_3_años_m,
             $censoBovino->may_3_años,
             $censoBovino->total_machos,
+            // TOTAL
             $censoBovino->total_bovinos,
+            $censoBovino->created_at ? $censoBovino->created_at->format('Y-m-d H:i:s') : '',
+            $censoBovino->updated_at ? $censoBovino->updated_at->format('Y-m-d H:i:s') : '',
         ];
     }
 
-    /**
-     * Definir las cabeceras del archivo Excel
-     */
     public function headings(): array
     {
         return [
@@ -104,51 +120,55 @@ class CensoBovinoExport implements FromCollection, WithHeadings, WithMapping, Sh
             'Mayores de 3 años (Machos)',
             'Total Machos',
             'Total Bovinos',
+            'Fecha de Creación',
+            'Fecha de Actualización',
         ];
     }
 
-    /**
-     * Aplicar estilos y espaciar las celdas
-     */
     public function styles(Worksheet $sheet)
     {
-        // Estilo de cabeceras en negrita
-        $sheet->getStyle('A1:P1')->applyFromArray([
-            'font' => ['bold' => true],
+        $sheet->getStyle('A1:S1')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '8B4513']]
         ]);
 
-        // Aumentar el ancho de las columnas
-        foreach (range('A', 'P') as $columnID) {
+        foreach (range('A', 'S') as $columnID) {
             $sheet->getColumnDimension($columnID)->setWidth(25);
         }
     }
 
-    /**
-     * Definir el título de la hoja de Excel
-     */
     public function title(): string
     {
-        return 'BOVINOS'; // Nombre correcto de la hoja
+        return 'BOVINOS';
     }
 }
 
+// ==================== HOJA 2: BUFALINOS ====================
 class CensoBufalinoExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithStyles, WithTitle
 {
-    /**
-     * Retornar los datos de la tabla 'censo_bufalinos' con relaciones
-     */
-    public function collection()
+    protected $prediosFiltrados;
+
+    public function __construct($prediosFiltrados = 'all')
     {
-        return CensoBufalino::with(['predio'])->get();
+        $this->prediosFiltrados = $prediosFiltrados;
     }
 
-    /**
-     * Mapeo de las columnas para que muestre los nombres en lugar de los IDs
-     */
+    public function collection()
+    {
+        $query = CensoBufalino::with(['predio']);
+
+        if ($this->prediosFiltrados !== 'all' && !empty($this->prediosFiltrados)) {
+            $query->whereIn('id_predio', $this->prediosFiltrados);
+        }
+
+        return $query->orderBy('id_predio')->get();
+    }
+
     public function map($censoBufalino): array
     {
         return [
-            $censoBufalino->predio ? $censoBufalino->predio->nombre_predio : 'Sin predio',  // Nombre del predio
+            $censoBufalino->predio ? $censoBufalino->predio->nombre_predio : 'Sin predio',
+            // HEMBRAS
             $censoBufalino->men_3_meses_h,
             $censoBufalino->tres_a_9_meses_h,
             $censoBufalino->nueve_a_12_meses_h,
@@ -157,6 +177,7 @@ class CensoBufalinoExport implements FromCollection, WithHeadings, WithMapping, 
             $censoBufalino->tres_a_5_años_h,
             $censoBufalino->may_5_años_h,
             $censoBufalino->total_hembras,
+            // MACHOS
             $censoBufalino->men_3_meses_m,
             $censoBufalino->tres_a_9_meses_m,
             $censoBufalino->nueve_a_12_meses_m,
@@ -164,13 +185,13 @@ class CensoBufalinoExport implements FromCollection, WithHeadings, WithMapping, 
             $censoBufalino->dos_a_3_años_m,
             $censoBufalino->may_3_años,
             $censoBufalino->total_machos,
+            // TOTAL
             $censoBufalino->total_bufalinos,
+            $censoBufalino->created_at ? $censoBufalino->created_at->format('Y-m-d H:i:s') : '',
+            $censoBufalino->updated_at ? $censoBufalino->updated_at->format('Y-m-d H:i:s') : '',
         ];
     }
 
-    /**
-     * Definir las cabeceras del archivo Excel
-     */
     public function headings(): array
     {
         return [
@@ -191,51 +212,54 @@ class CensoBufalinoExport implements FromCollection, WithHeadings, WithMapping, 
             'Mayores de 3 años (Machos)',
             'Total Machos',
             'Total Bufalinos',
+            'Fecha de Creación',
+            'Fecha de Actualización',
         ];
     }
 
-    /**
-     * Aplicar estilos y espaciar las celdas
-     */
     public function styles(Worksheet $sheet)
     {
-        // Estilo de cabeceras en negrita
-        $sheet->getStyle('A1:P1')->applyFromArray([
-            'font' => ['bold' => true],
+        $sheet->getStyle('A1:S1')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '4A4A4A']]
         ]);
 
-        // Aumentar el ancho de las columnas
-        foreach (range('A', 'P') as $columnID) {
+        foreach (range('A', 'S') as $columnID) {
             $sheet->getColumnDimension($columnID)->setWidth(25);
         }
     }
 
-    /**
-     * Definir el título de la hoja de Excel
-     */
     public function title(): string
     {
-        return 'BUFALINOS'; // Nombre correcto de la hoja
+        return 'BUFALINOS';
     }
 }
 
+// ==================== HOJA 3: PORCINOS ====================
 class CensoPorcinoExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithStyles, WithTitle
 {
-    /**
-     * Retornar los datos de la tabla 'censo_porcinos' con relaciones
-     */
-    public function collection()
+    protected $prediosFiltrados;
+
+    public function __construct($prediosFiltrados = 'all')
     {
-        return CensoPorcino::with(['predio'])->get();
+        $this->prediosFiltrados = $prediosFiltrados;
     }
 
-    /**
-     * Mapeo de las columnas para que muestre los nombres en lugar de los IDs
-     */
+    public function collection()
+    {
+        $query = CensoPorcino::with(['predio']);
+
+        if ($this->prediosFiltrados !== 'all' && !empty($this->prediosFiltrados)) {
+            $query->whereIn('id_predio', $this->prediosFiltrados);
+        }
+
+        return $query->orderBy('id_predio')->get();
+    }
+
     public function map($censoPorcino): array
     {
         return [
-            $censoPorcino->predio ? $censoPorcino->predio->nombre_predio : 'Sin predio',  // Nombre del predio
+            $censoPorcino->predio ? $censoPorcino->predio->nombre_predio : 'Sin predio',
             $censoPorcino->lact_hast_30_dias,
             $censoPorcino->precebo_31_a_60_dias,
             $censoPorcino->lev_ceb_61_180_dias,
@@ -243,87 +267,92 @@ class CensoPorcinoExport implements FromCollection, WithHeadings, WithMapping, S
             $censoPorcino->cria_men_8_meses_h,
             $censoPorcino->macho_reprod_men_6_meses,
             $censoPorcino->total_porcinos,
+            $censoPorcino->created_at ? $censoPorcino->created_at->format('Y-m-d H:i:s') : '',
+            $censoPorcino->updated_at ? $censoPorcino->updated_at->format('Y-m-d H:i:s') : '',
         ];
     }
 
-    /**
-     * Definir las cabeceras del archivo Excel
-     */
     public function headings(): array
     {
         return [
             'Nombre del Predio',
-            'Lactantes hasta 30 días',
+            'Lactancia (hasta 30 días)',
             'Precebo (31 a 60 días)',
-            'Levante y Cebo (61 a 180 días)',
-            'Reemplazo menores de 8 meses (Hembras)',
-            'Cría menores de 8 meses (Hembras)',
-            'Machos reproductores menores de 6 meses',
+            'Levante/Ceba (61 a 180 días)',
+            'Reemplazo (menores de 8 meses - Hembras)',
+            'Cría (menores de 8 meses - Hembras)',
+            'Macho Reproductor (menores de 6 meses)',
             'Total Porcinos',
+            'Fecha de Creación',
+            'Fecha de Actualización',
         ];
     }
 
-    /**
-     * Aplicar estilos y espaciar las celdas
-     */
     public function styles(Worksheet $sheet)
     {
-        // Estilo de cabeceras en negrita
-        $sheet->getStyle('A1:H1')->applyFromArray([
-            'font' => ['bold' => true],
+        $sheet->getStyle('A1:J1')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FF69B4']]
         ]);
 
-        // Aumentar el ancho de las columnas
-        foreach (range('A', 'H') as $columnID) {
+        foreach (range('A', 'J') as $columnID) {
             $sheet->getColumnDimension($columnID)->setWidth(25);
         }
     }
 
-    /**
-     * Definir el título de la hoja de Excel
-     */
     public function title(): string
     {
-        return 'PORCINOS';  // Nombre de la hoja para censo porcinos
+        return 'PORCINOS';
     }
 }
 
+// ==================== HOJA 4: ÉQUIDOS ====================
 class CensoEquidoExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithStyles, WithTitle
 {
-    /**
-     * Retornar los datos de la tabla 'censo_equidos' con relaciones
-     */
-    public function collection()
+    protected $prediosFiltrados;
+
+    public function __construct($prediosFiltrados = 'all')
     {
-        return CensoEquido::with(['predio'])->get();
+        $this->prediosFiltrados = $prediosFiltrados;
     }
 
-    /**
-     * Mapeo de las columnas para que muestre los nombres en lugar de los IDs
-     */
+    public function collection()
+    {
+        $query = CensoEquido::with(['predio']);
+
+        if ($this->prediosFiltrados !== 'all' && !empty($this->prediosFiltrados)) {
+            $query->whereIn('id_predio', $this->prediosFiltrados);
+        }
+
+        return $query->orderBy('id_predio')->get();
+    }
+
     public function map($censoEquido): array
     {
         return [
-            $censoEquido->predio ? $censoEquido->predio->nombre_predio : 'Sin predio',  // Nombre del predio
+            $censoEquido->predio ? $censoEquido->predio->nombre_predio : 'Sin predio',
+            // CABALLARES
             $censoEquido->men_6_mese_caballar,
             $censoEquido->seis_12_meses_caballar,
             $censoEquido->may_1_año_caballar,
             $censoEquido->total_caballar,
+            // MULARES
             $censoEquido->men_6_mese_mular,
             $censoEquido->seis_12_meses_mular,
             $censoEquido->may_1_año_mular,
             $censoEquido->total_mular,
+            // ASNALES
             $censoEquido->men_6_mese_asnal,
             $censoEquido->seis_12_meses_asnal,
             $censoEquido->may_1_año_asnal,
             $censoEquido->total_asnal,
+            // TOTAL
             $censoEquido->total_equidos,
+            $censoEquido->created_at ? $censoEquido->created_at->format('Y-m-d H:i:s') : '',
+            $censoEquido->updated_at ? $censoEquido->updated_at->format('Y-m-d H:i:s') : '',
         ];
     }
 
-    /**
-     * Definir las cabeceras del archivo Excel
-     */
     public function headings(): array
     {
         return [
@@ -341,51 +370,54 @@ class CensoEquidoExport implements FromCollection, WithHeadings, WithMapping, Sh
             'Mayores de 1 año (Asnal)',
             'Total Asnal',
             'Total Équidos',
+            'Fecha de Creación',
+            'Fecha de Actualización',
         ];
     }
 
-    /**
-     * Aplicar estilos y espaciar las celdas
-     */
     public function styles(Worksheet $sheet)
     {
-        // Estilo de cabeceras en negrita
-        $sheet->getStyle('A1:N1')->applyFromArray([
-            'font' => ['bold' => true],
+        $sheet->getStyle('A1:P1')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '8B7355']]
         ]);
 
-        // Aumentar el ancho de las columnas
-        foreach (range('A', 'N') as $columnID) {
+        foreach (range('A', 'P') as $columnID) {
             $sheet->getColumnDimension($columnID)->setWidth(25);
         }
     }
 
-    /**
-     * Definir el título de la hoja de Excel
-     */
     public function title(): string
     {
-        return 'ÉQUIDOS';  // Nombre de la hoja para censo équidos
+        return 'ÉQUIDOS';
     }
 }
 
+// ==================== HOJA 5: OVINOS Y CAPRINOS ====================
 class CensoOvinoCaprinoExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithStyles, WithTitle
 {
-    /**
-     * Retornar los datos de la tabla 'censo_ovino_caprino' con relaciones
-     */
-    public function collection()
+    protected $prediosFiltrados;
+
+    public function __construct($prediosFiltrados = 'all')
     {
-        return CensoOvinoCaprino::with(['predio'])->get();
+        $this->prediosFiltrados = $prediosFiltrados;
     }
 
-    /**
-     * Mapeo de las columnas para que muestre los nombres en lugar de los IDs
-     */
+    public function collection()
+    {
+        $query = CensoOvinoCaprino::with(['predio']);
+
+        if ($this->prediosFiltrados !== 'all' && !empty($this->prediosFiltrados)) {
+            $query->whereIn('id_predio', $this->prediosFiltrados);
+        }
+
+        return $query->orderBy('id_predio')->get();
+    }
+
     public function map($censoOvinoCaprino): array
     {
         return [
-            $censoOvinoCaprino->predio ? $censoOvinoCaprino->predio->nombre_predio : 'Sin predio',  // Nombre del predio
+            $censoOvinoCaprino->predio ? $censoOvinoCaprino->predio->nombre_predio : 'Sin predio',
             $censoOvinoCaprino->men_6_meses_h_ovi,
             $censoOvinoCaprino->may_6_meses_h_ovi,
             $censoOvinoCaprino->total_hembras_ovinas,
@@ -400,12 +432,11 @@ class CensoOvinoCaprinoExport implements FromCollection, WithHeadings, WithMappi
             $censoOvinoCaprino->may_6_meses_m_capri,
             $censoOvinoCaprino->total_machos_capri,
             $censoOvinoCaprino->total_caprinos,
+            $censoOvinoCaprino->created_at ? $censoOvinoCaprino->created_at->format('Y-m-d H:i:s') : '',
+            $censoOvinoCaprino->updated_at ? $censoOvinoCaprino->updated_at->format('Y-m-d H:i:s') : '',
         ];
     }
 
-    /**
-     * Definir las cabeceras del archivo Excel
-     */
     public function headings(): array
     {
         return [
@@ -424,198 +455,204 @@ class CensoOvinoCaprinoExport implements FromCollection, WithHeadings, WithMappi
             'Mayores de 6 meses (Machos Caprinos)',
             'Total Machos Caprinos',
             'Total Caprinos',
+            'Fecha de Creación',
+            'Fecha de Actualización',
         ];
     }
 
-    /**
-     * Aplicar estilos y espaciar las celdas
-     */
     public function styles(Worksheet $sheet)
     {
-        // Estilo de cabeceras en negrita
-        $sheet->getStyle('A1:O1')->applyFromArray([
-            'font' => ['bold' => true],
+        $sheet->getStyle('A1:Q1')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => 'D2691E']]
         ]);
 
-        // Aumentar el ancho de las columnas
-        foreach (range('A', 'O') as $columnID) {
+        foreach (range('A', 'Q') as $columnID) {
             $sheet->getColumnDimension($columnID)->setWidth(25);
         }
     }
 
-    /**
-     * Definir el título de la hoja de Excel
-     */
     public function title(): string
     {
-        return 'OVINOS Y CAPRINOS';  // Nombre de la hoja para "Ovino Caprino"
+        return 'OVINOS Y CAPRINOS';
     }
 }
 
+// ==================== HOJA 6: OTRAS ESPECIES ====================
 class CensoOtrasEspecExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithStyles, WithTitle
 {
-    /**
-     * Retornar los datos de la tabla 'censo_otras_espec' con relaciones
-     */
-    public function collection()
+    protected $prediosFiltrados;
+
+    public function __construct($prediosFiltrados = 'all')
     {
-        return CensoOtrasEspec::with(['predio'])->get();
+        $this->prediosFiltrados = $prediosFiltrados;
     }
 
-    /**
-     * Mapeo de las columnas para que muestre los nombres en lugar de los IDs
-     */
+    public function collection()
+    {
+        $query = CensoOtrasEspec::with(['predio']);
+
+        if ($this->prediosFiltrados !== 'all' && !empty($this->prediosFiltrados)) {
+            $query->whereIn('id_predio', $this->prediosFiltrados);
+        }
+
+        return $query->orderBy('id_predio')->get();
+    }
+
     public function map($censoOtrasEspec): array
     {
         return [
-            $censoOtrasEspec->predio ? $censoOtrasEspec->predio->nombre_predio : 'Sin predio',  // Nombre del predio
+            $censoOtrasEspec->predio ? $censoOtrasEspec->predio->nombre_predio : 'Sin predio',
             $censoOtrasEspec->llamas,
             $censoOtrasEspec->alpacas,
             $censoOtrasEspec->avectruces,
             $censoOtrasEspec->otras,
             $censoOtrasEspec->cuantas_otras,
+            $censoOtrasEspec->created_at ? $censoOtrasEspec->created_at->format('Y-m-d H:i:s') : '',
+            $censoOtrasEspec->updated_at ? $censoOtrasEspec->updated_at->format('Y-m-d H:i:s') : '',
         ];
     }
 
-    /**
-     * Definir las cabeceras del archivo Excel
-     */
     public function headings(): array
     {
         return [
             'Nombre del Predio',
             'Llamas',
             'Alpacas',
-            'Avectruces',
+            'Avestruces',
             'Otras Especies',
             'Cantidad de Otras Especies',
+            'Fecha de Creación',
+            'Fecha de Actualización',
         ];
     }
 
-    /**
-     * Aplicar estilos y espaciar las celdas
-     */
     public function styles(Worksheet $sheet)
     {
-        // Estilo de cabeceras en negrita
-        $sheet->getStyle('A1:F1')->applyFromArray([
-            'font' => ['bold' => true],
-        ]);
-
-        // Aumentar el ancho de las columnas
-        foreach (range('A', 'F') as $columnID) {
-            $sheet->getColumnDimension($columnID)->setWidth(25);
-        }
-    }
-
-    /**
-     * Definir el título de la hoja de Excel
-     */
-    public function title(): string
-    {
-        return 'OTRAS ESPECIES';  // Nombre de la hoja para "Otras Especies"
-    }
-}
-
-class CensoPezExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithStyles, WithTitle
-{
-    /**
-     * Retornar los datos de la tabla 'censo_peces' con relaciones
-     */
-    public function collection()
-    {
-        return CensoPez::with(['predio', 'tipoEspeciePez'])->get();
-    }
-
-    /**
-     * Mapeo de las columnas para que muestre los nombres en lugar de los IDs
-     */
-    public function map($censoPez): array
-    {
-        return [
-            $censoPez->predio ? $censoPez->predio->nombre_predio : 'Sin predio',  // Nombre del predio
-            $censoPez->tipoEspeciePez ? $censoPez->tipoEspeciePez->nombre : 'Sin especie',  // Nombre de la especie de pez
-            $censoPez->ovas,
-            $censoPez->alevinos,
-            $censoPez->engorde,
-            $censoPez->reproductores,
-            $censoPez->total_pez_especie,
-            $censoPez->total_peces,
-        ];
-    }
-
-    /**
-     * Definir las cabeceras del archivo Excel
-     */
-    public function headings(): array
-    {
-        return [
-            'Nombre del Predio',
-            'Especie de Peces',
-            'Ovas',
-            'Alevinos',
-            'Engorde',
-            'Reproductores',
-            'Total por Especie',
-            'Total de Peces',
-        ];
-    }
-
-    /**
-     * Aplicar estilos y espaciar las celdas
-     */
-    public function styles(Worksheet $sheet)
-    {
-        // Estilo de cabeceras en negrita
         $sheet->getStyle('A1:H1')->applyFromArray([
-            'font' => ['bold' => true],
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '9370DB']]
         ]);
 
-        // Aumentar el ancho de las columnas
         foreach (range('A', 'H') as $columnID) {
             $sheet->getColumnDimension($columnID)->setWidth(25);
         }
     }
 
-    /**
-     * Definir el título de la hoja de Excel
-     */
     public function title(): string
     {
-        return 'PECES';  // Nombre de la hoja para "Censo de Peces"
+        return 'OTRAS ESPECIES';
     }
 }
 
-class CensoCructaceoExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithStyles, WithTitle
+// ==================== HOJA 7: PECES ====================
+class CensoPezExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithStyles, WithTitle
 {
-    /**
-     * Retornar los datos de la tabla 'censo_cructaceos' con relaciones
-     */
-    public function collection()
+    protected $prediosFiltrados;
+
+    public function __construct($prediosFiltrados = 'all')
     {
-        return CensoCructaceo::with(['predio', 'tipoEspecieCructaceo'])->get();
+        $this->prediosFiltrados = $prediosFiltrados;
     }
 
-    /**
-     * Mapeo de las columnas para que muestre los nombres en lugar de los IDs
-     */
+    public function collection()
+    {
+        $query = CensoPez::with(['predio', 'tipoEspeciePez']);
+
+        if ($this->prediosFiltrados !== 'all' && !empty($this->prediosFiltrados)) {
+            $query->whereIn('id_predio', $this->prediosFiltrados);
+        }
+
+        return $query->orderBy('id_predio')->get();
+    }
+
+    public function map($censoPez): array
+    {
+        return [
+            $censoPez->predio ? $censoPez->predio->nombre_predio : 'Sin predio',
+            $censoPez->tipoEspeciePez ? $censoPez->tipoEspeciePez->nombre : 'Sin especie',
+            $censoPez->alevinos,
+            $censoPez->juveniles,
+            $censoPez->adultos,
+            $censoPez->reproductores,
+            $censoPez->total_especie_pez,
+            $censoPez->total_peces,
+            $censoPez->created_at ? $censoPez->created_at->format('Y-m-d H:i:s') : '',
+            $censoPez->updated_at ? $censoPez->updated_at->format('Y-m-d H:i:s') : '',
+        ];
+    }
+
+    public function headings(): array
+    {
+        return [
+            'Nombre del Predio',
+            'Especie de Pez',
+            'Alevinos',
+            'Juveniles',
+            'Adultos',
+            'Reproductores',
+            'Total por Especie',
+            'Total de Peces',
+            'Fecha de Creación',
+            'Fecha de Actualización',
+        ];
+    }
+
+    public function styles(Worksheet $sheet)
+    {
+        $sheet->getStyle('A1:J1')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '4169E1']]
+        ]);
+
+        foreach (range('A', 'J') as $columnID) {
+            $sheet->getColumnDimension($columnID)->setWidth(25);
+        }
+    }
+
+    public function title(): string
+    {
+        return 'PECES';
+    }
+}
+
+// ==================== HOJA 8: CRUSTÁCEOS ====================
+class CensoCructaceoExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithStyles, WithTitle
+{
+    protected $prediosFiltrados;
+
+    public function __construct($prediosFiltrados = 'all')
+    {
+        $this->prediosFiltrados = $prediosFiltrados;
+    }
+
+    public function collection()
+    {
+        $query = CensoCructaceo::with(['predio', 'tipoEspecieCructaceo']);
+
+        if ($this->prediosFiltrados !== 'all' && !empty($this->prediosFiltrados)) {
+            $query->whereIn('id_predio', $this->prediosFiltrados);
+        }
+
+        return $query->orderBy('id_predio')->get();
+    }
+
     public function map($censoCructaceo): array
     {
         return [
-            $censoCructaceo->predio ? $censoCructaceo->predio->nombre_predio : 'Sin predio',  // Nombre del predio
-            $censoCructaceo->tipoEspecieCructaceo ? $censoCructaceo->tipoEspecieCructaceo->nombre : 'Sin especie',  // Nombre de la especie de crustáceo
+            $censoCructaceo->predio ? $censoCructaceo->predio->nombre_predio : 'Sin predio',
+            $censoCructaceo->tipoEspecieCructaceo ? $censoCructaceo->tipoEspecieCructaceo->nombre : 'Sin especie',
             $censoCructaceo->nauplinos,
             $censoCructaceo->larvicultura,
             $censoCructaceo->engorde,
             $censoCructaceo->reproductores,
             $censoCructaceo->total_especie_cructacio,
             $censoCructaceo->total_cructaceos,
+            $censoCructaceo->created_at ? $censoCructaceo->created_at->format('Y-m-d H:i:s') : '',
+            $censoCructaceo->updated_at ? $censoCructaceo->updated_at->format('Y-m-d H:i:s') : '',
         ];
     }
 
-    /**
-     * Definir las cabeceras del archivo Excel
-     */
     public function headings(): array
     {
         return [
@@ -627,52 +664,55 @@ class CensoCructaceoExport implements FromCollection, WithHeadings, WithMapping,
             'Reproductores',
             'Total por Especie',
             'Total de Crustáceos',
+            'Fecha de Creación',
+            'Fecha de Actualización',
         ];
     }
 
-    /**
-     * Aplicar estilos y espaciar las celdas
-     */
     public function styles(Worksheet $sheet)
     {
-        // Estilo de cabeceras en negrita
-        $sheet->getStyle('A1:H1')->applyFromArray([
-            'font' => ['bold' => true],
+        $sheet->getStyle('A1:J1')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FF6347']]
         ]);
 
-        // Aumentar el ancho de las columnas
-        foreach (range('A', 'H') as $columnID) {
+        foreach (range('A', 'J') as $columnID) {
             $sheet->getColumnDimension($columnID)->setWidth(25);
         }
     }
 
-    /**
-     * Definir el título de la hoja de Excel
-     */
     public function title(): string
     {
-        return 'CRUSTÁCEOS';  // Nombre de la hoja para "Censo de Crustáceos"
+        return 'CRUSTÁCEOS';
     }
 }
 
+// ==================== HOJA 9: AVES COMERCIALES ====================
 class CensoAvesComercialesExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithStyles, WithTitle
 {
-    /**
-     * Retornar los datos de la tabla 'censo_aves_comerciales' con relaciones
-     */
-    public function collection()
+    protected $prediosFiltrados;
+
+    public function __construct($prediosFiltrados = 'all')
     {
-        return CensoAvesComerciales::with(['predio', 'tipoAveComercial'])->get();
+        $this->prediosFiltrados = $prediosFiltrados;
     }
 
-    /**
-     * Mapeo de las columnas para que muestre los nombres en lugar de los IDs
-     */
+    public function collection()
+    {
+        $query = CensoAvesComerciales::with(['predio', 'tipoAveComercial']);
+
+        if ($this->prediosFiltrados !== 'all' && !empty($this->prediosFiltrados)) {
+            $query->whereIn('id_predio', $this->prediosFiltrados);
+        }
+
+        return $query->orderBy('id_predio')->get();
+    }
+
     public function map($censoAvesComerciales): array
     {
         return [
-            $censoAvesComerciales->predio ? $censoAvesComerciales->predio->nombre_predio : 'Sin predio',  // Nombre del predio
-            $censoAvesComerciales->tipoAveComercial ? $censoAvesComerciales->tipoAveComercial->nombre : 'Sin tipo',  // Tipo de Ave Comercial
+            $censoAvesComerciales->predio ? $censoAvesComerciales->predio->nombre_predio : 'Sin predio',
+            $censoAvesComerciales->tipoAveComercial ? $censoAvesComerciales->tipoAveComercial->nombre : 'Sin tipo',
             $censoAvesComerciales->linea,
             $censoAvesComerciales->num_aves,
             $censoAvesComerciales->edad,
@@ -681,12 +721,11 @@ class CensoAvesComercialesExport implements FromCollection, WithHeadings, WithMa
             $censoAvesComerciales->densidad,
             $censoAvesComerciales->tiemp_descan_lotes,
             $censoAvesComerciales->procedencia_aves,
+            $censoAvesComerciales->created_at ? $censoAvesComerciales->created_at->format('Y-m-d H:i:s') : '',
+            $censoAvesComerciales->updated_at ? $censoAvesComerciales->updated_at->format('Y-m-d H:i:s') : '',
         ];
     }
 
-    /**
-     * Definir las cabeceras del archivo Excel
-     */
     public function headings(): array
     {
         return [
@@ -700,117 +739,122 @@ class CensoAvesComercialesExport implements FromCollection, WithHeadings, WithMa
             'Densidad',
             'Tiempo de Descanso de Lotes',
             'Procedencia de Aves',
+            'Fecha de Creación',
+            'Fecha de Actualización',
         ];
     }
 
-    /**
-     * Aplicar estilos y espaciar las celdas
-     */
     public function styles(Worksheet $sheet)
     {
-        // Estilo de cabeceras en negrita
-        $sheet->getStyle('A1:J1')->applyFromArray([
-            'font' => ['bold' => true],
+        $sheet->getStyle('A1:L1')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFD700']]
         ]);
 
-        // Aumentar el ancho de las columnas
-        foreach (range('A', 'J') as $columnID) {
+        foreach (range('A', 'L') as $columnID) {
             $sheet->getColumnDimension($columnID)->setWidth(25);
         }
     }
 
-    /**
-     * Definir el título de la hoja de Excel
-     */
     public function title(): string
     {
-        return 'AVES COMERCIALES';  // Nombre de la hoja para "Censo de Aves Comerciales"
+        return 'AVES COMERCIALES';
     }
 }
 
+// ==================== HOJA 10: AVES DE TRASPATIO ====================
 class CensoAvesTraspatioExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithStyles, WithTitle
 {
-    /**
-     * Retornar los datos de la tabla 'censo_aves_traspatio' con relaciones
-     */
-    public function collection()
+    protected $prediosFiltrados;
+
+    public function __construct($prediosFiltrados = 'all')
     {
-        return CensoAvesTraspatio::with(['predio', 'tipoAveTranspatio'])->get();
+        $this->prediosFiltrados = $prediosFiltrados;
     }
 
-    /**
-     * Mapeo de las columnas para que muestre los nombres en lugar de los IDs
-     */
+    public function collection()
+    {
+        $query = CensoAvesTraspatio::with(['predio', 'tipoAveTranspatio']);
+
+        if ($this->prediosFiltrados !== 'all' && !empty($this->prediosFiltrados)) {
+            $query->whereIn('id_predio', $this->prediosFiltrados);
+        }
+
+        return $query->orderBy('id_predio')->get();
+    }
+
     public function map($censoAvesTraspatio): array
     {
         return [
-            $censoAvesTraspatio->predio ? $censoAvesTraspatio->predio->nombre_predio : 'Sin predio',  // Nombre del predio
-            $censoAvesTraspatio->tipoAveTranspatio ? $censoAvesTraspatio->tipoAveTranspatio->nombre : 'Sin tipo',  // Tipo de Ave Traspatio
-            $censoAvesTraspatio->num_aves,
-            $censoAvesTraspatio->edad,
-            $censoAvesTraspatio->precedencia_aves,
-            $censoAvesTraspatio->observaciones,
+            $censoAvesTraspatio->predio ? $censoAvesTraspatio->predio->nombre_predio : 'Sin predio',
+            $censoAvesTraspatio->tipoAveTranspatio ? $censoAvesTraspatio->tipoAveTranspatio->nombre : 'Sin tipo',
+            $censoAvesTraspatio->pollos_pollas,
+            $censoAvesTraspatio->gallinas_ponedoras,
+            $censoAvesTraspatio->gallos,
+            $censoAvesTraspatio->total_aves_traspatio,
+            $censoAvesTraspatio->created_at ? $censoAvesTraspatio->created_at->format('Y-m-d H:i:s') : '',
+            $censoAvesTraspatio->updated_at ? $censoAvesTraspatio->updated_at->format('Y-m-d H:i:s') : '',
         ];
     }
 
-    /**
-     * Definir las cabeceras del archivo Excel
-     */
     public function headings(): array
     {
         return [
             'Nombre del Predio',
             'Tipo de Ave de Traspatio',
-            'Número de Aves',
-            'Edad',
-            'Procedencia de Aves',
-            'Observaciones',
+            'Pollos/Pollas',
+            'Gallinas Ponedoras',
+            'Gallos',
+            'Total Aves de Traspatio',
+            'Fecha de Creación',
+            'Fecha de Actualización',
         ];
     }
 
-    /**
-     * Aplicar estilos y espaciar las celdas
-     */
     public function styles(Worksheet $sheet)
     {
-        // Estilo de cabeceras en negrita
-        $sheet->getStyle('A1:F1')->applyFromArray([
-            'font' => ['bold' => true],
+        $sheet->getStyle('A1:H1')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFA500']]
         ]);
 
-        // Aumentar el ancho de las columnas
-        foreach (range('A', 'F') as $columnID) {
+        foreach (range('A', 'H') as $columnID) {
             $sheet->getColumnDimension($columnID)->setWidth(25);
         }
     }
 
-    /**
-     * Definir el título de la hoja de Excel
-     */
     public function title(): string
     {
-        return 'OTRAS AVES';  // Nombre de la hoja para "Censo de Aves de Traspatio"
+        return 'AVES DE TRASPATIO';
     }
 }
 
+// ==================== HOJA 11: ABEJAS ====================
 class CensoAbejasExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithStyles, WithTitle
 {
-    /**
-     * Retornar los datos de la tabla 'censo_abejas' con relaciones
-     */
-    public function collection()
+    protected $prediosFiltrados;
+
+    public function __construct($prediosFiltrados = 'all')
     {
-        return CensoAbejas::with(['predio', 'tipoAbejas'])->get();
+        $this->prediosFiltrados = $prediosFiltrados;
     }
 
-    /**
-     * Mapeo de las columnas para que muestre los nombres en lugar de los IDs
-     */
+    public function collection()
+    {
+        $query = CensoAbejas::with(['predio', 'tipoAbejas']);
+
+        if ($this->prediosFiltrados !== 'all' && !empty($this->prediosFiltrados)) {
+            $query->whereIn('id_predio', $this->prediosFiltrados);
+        }
+
+        return $query->orderBy('id_predio')->get();
+    }
+
     public function map($censoAbejas): array
     {
         return [
-            $censoAbejas->predio ? $censoAbejas->predio->nombre_predio : 'Sin predio',  // Nombre del predio
-            $censoAbejas->tipoAbejas ? $censoAbejas->tipoAbejas->nombre : 'Sin tipo',  // Tipo de Abejas
+            $censoAbejas->predio ? $censoAbejas->predio->nombre_predio : 'Sin predio',
+            $censoAbejas->tipoAbejas ? $censoAbejas->tipoAbejas->nombre : 'Sin tipo',
             $censoAbejas->num_apiarios,
             $censoAbejas->num_colmenas,
             $censoAbejas->poblacion_estimada,
@@ -818,12 +862,11 @@ class CensoAbejasExport implements FromCollection, WithHeadings, WithMapping, Sh
             $censoAbejas->nom_estable_destino,
             $censoAbejas->departamento,
             $censoAbejas->municipio,
+            $censoAbejas->created_at ? $censoAbejas->created_at->format('Y-m-d H:i:s') : '',
+            $censoAbejas->updated_at ? $censoAbejas->updated_at->format('Y-m-d H:i:s') : '',
         ];
     }
 
-    /**
-     * Definir las cabeceras del archivo Excel
-     */
     public function headings(): array
     {
         return [
@@ -836,103 +879,90 @@ class CensoAbejasExport implements FromCollection, WithHeadings, WithMapping, Sh
             'Nombre del Establecimiento Destino',
             'Departamento',
             'Municipio',
+            'Fecha de Creación',
+            'Fecha de Actualización',
         ];
     }
 
-    /**
-     * Aplicar estilos y espaciar las celdas
-     */
     public function styles(Worksheet $sheet)
     {
-        // Estilo de cabeceras en negrita
-        $sheet->getStyle('A1:I1')->applyFromArray([
-            'font' => ['bold' => true],
+        $sheet->getStyle('A1:K1')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => '000000']],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFFF00']]
         ]);
 
-        // Aumentar el ancho de las columnas
-        foreach (range('A', 'I') as $columnID) {
+        foreach (range('A', 'K') as $columnID) {
             $sheet->getColumnDimension($columnID)->setWidth(25);
         }
     }
 
-    /**
-     * Definir el título de la hoja de Excel
-     */
     public function title(): string
     {
-        return 'ABEJAS';  // Nombre de la hoja para "Censo de Abejas"
+        return 'ABEJAS';
     }
 }
 
+// ==================== HOJA 12: IDENTIFICACIÓN ANIMAL ====================
 class IdentificacionAnimalExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithStyles, WithTitle
 {
-    /**
-     * Retornar los datos de la tabla 'identificacion_animal' con relaciones
-     */
-    public function collection()
+    protected $prediosFiltrados;
+
+    public function __construct($prediosFiltrados = 'all')
     {
-        return IdentificacionAnimal::with(['predio'])->get();
+        $this->prediosFiltrados = $prediosFiltrados;
     }
 
-    /**
-     * Mapeo de las columnas para que muestre los nombres en lugar de los IDs
-     */
+    public function collection()
+    {
+        $query = IdentificacionAnimal::with(['predio']);
+
+        if ($this->prediosFiltrados !== 'all' && !empty($this->prediosFiltrados)) {
+            $query->whereIn('id_predio', $this->prediosFiltrados);
+        }
+
+        return $query->orderBy('id_predio')->get();
+    }
+
     public function map($identificacionAnimal): array
     {
         return [
-            $identificacionAnimal->predio ? $identificacionAnimal->predio->nombre_predio : 'Sin predio',  // Nombre del predio
-            $identificacionAnimal->porcinos_con,
-            $identificacionAnimal->porcinos_sin,
-            $identificacionAnimal->total_porcinos,
-            $identificacionAnimal->bovinos_con,
-            $identificacionAnimal->bovinos_sin,
-            $identificacionAnimal->total_bovinos,
-            $identificacionAnimal->bufalinos_con,
-            $identificacionAnimal->bufalinos_sin,
-            $identificacionAnimal->total_bufalinos,
+            $identificacionAnimal->predio ? $identificacionAnimal->predio->nombre_predio : 'Sin predio',
+            $identificacionAnimal->especie,
+            $identificacionAnimal->total_animales,
+            $identificacionAnimal->total_identificados,
+            $identificacionAnimal->tipo_identificacion,
+            $identificacionAnimal->created_at ? $identificacionAnimal->created_at->format('Y-m-d H:i:s') : '',
+            $identificacionAnimal->updated_at ? $identificacionAnimal->updated_at->format('Y-m-d H:i:s') : '',
         ];
     }
 
-    /**
-     * Definir las cabeceras del archivo Excel
-     */
     public function headings(): array
     {
         return [
             'Nombre del Predio',
-            'Porcinos con identificación',
-            'Porcinos sin identificación',
-            'Total Porcinos',
-            'Bovinos con identificación',
-            'Bovinos sin identificación',
-            'Total Bovinos',
-            'Bufalinos con identificación',
-            'Bufalinos sin identificación',
-            'Total Bufalinos',
+            'Especie',
+            'Total de Animales',
+            'Total Identificados',
+            'Tipo de Identificación',
+            'Fecha de Creación',
+            'Fecha de Actualización',
         ];
     }
 
-    /**
-     * Aplicar estilos y espaciar las celdas
-     */
     public function styles(Worksheet $sheet)
     {
-        // Estilo de cabeceras en negrita
-        $sheet->getStyle('A1:J1')->applyFromArray([
-            'font' => ['bold' => true],
+        $sheet->getStyle('A1:G1')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '2E8B57']]
         ]);
 
-        // Aumentar el ancho de las columnas
-        foreach (range('A', 'J') as $columnID) {
+        foreach (range('A', 'G') as $columnID) {
             $sheet->getColumnDimension($columnID)->setWidth(25);
         }
     }
 
-    /**
-     * Definir el título de la hoja de Excel
-     */
     public function title(): string
     {
-        return 'IDENTIFICACIÓN ANIMAL';  // Nombre de la hoja para "Identificación Animal"
+        return 'IDENTIFICACIÓN ANIMAL';
     }
 }

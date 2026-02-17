@@ -25,10 +25,12 @@ class HistorialAnimalController extends Controller
             $busqueda = $request->input('busqueda');
 
             // Buscar animal por codigo (único), nombre o identificación electrónica
-            $animal = Animal::where('codigo', $busqueda)
-                ->orWhere('nombre', 'LIKE', "%{$busqueda}%")
-                ->orWhere('identificacion_electronica', 'LIKE', "%{$busqueda}%")
-                ->first();
+            $animal = Animal::with(['potrero', 'lote'])
+    ->where('codigo', $busqueda)
+    ->orWhere('nombre', 'LIKE', "%{$busqueda}%")
+    ->orWhere('identificacion_electronica', 'LIKE', "%{$busqueda}%")
+    ->first();
+
 
             if (!$animal) {
                 return response()->json([
@@ -40,44 +42,49 @@ class HistorialAnimalController extends Controller
             $id_animal = $animal->id_animal;
 
             // Construir respuesta completa
-            $historial = [
-                // Información básica
-                'id' => $id_animal,
-                'codigo' => $animal->codigo,
-                'nombre' => $animal->nombre,
-                'identificacion_electronica' => $animal->identificacion_electronica,
-                'sexo' => $animal->sexo,
-                'nombre_raza' => $animal->raza ?? 'Sin raza',
-                'color' => $animal->color,
-                'fecha_nacimiento' => $animal->fecha_nacimiento,
-                
-                // Peso
-                'ultimo_peso' => $this->obtenerUltimoPeso($id_animal),
-                'fecha_ultimo_pesaje' => $this->obtenerFechaUltimoPesaje($id_animal),
-                'peso_historico' => $this->obtenerPesoHistorico($id_animal),
-                
-                // Genealogía
-                'madre' => $this->obtenerMadre($animal->madre),
-                'padre' => $this->obtenerPadre($animal->padre),
-                
-                // Estados
-                'estado_productivo' => $this->obtenerEstadoProductivo($id_animal),
-                'estado_reproductivo' => $this->obtenerEstadoReproductivo($id_animal),
-                
-                // Crías
-                'crias' => $this->obtenerCrias($id_animal),
-                
-                // Producción de leche
-                'produccion_leche' => $this->obtenerProduccionLeche($id_animal),
-                
-                // Eventos reproductivos
-                'montas' => $this->obtenerMontas($id_animal),
-                'inseminaciones' => $this->obtenerInseminaciones($id_animal),
-                'palpaciones' => $this->obtenerPalpaciones($id_animal),
-                
-                // Destetes/Secados
-                'destetes' => $this->obtenerDestetes($id_animal),
-            ];
+          $historial = [
+    // Información básica
+    'id' => $id_animal,
+    'codigo' => $animal->codigo,
+    'nombre' => $animal->nombre,
+    'identificacion_electronica' => $animal->identificacion_electronica,
+    'sexo' => $animal->sexo,
+    'nombre_raza' => $animal->raza ?? 'Sin raza',
+    'color' => $animal->color,
+    'fecha_nacimiento' => $animal->fecha_nacimiento,
+
+    // 📍 Ubicación actual
+    'potrero' => $animal->potrero ? $animal->potrero->nombre : null,
+    'lote' => $animal->lote ? $animal->lote->nombre : null,
+
+    // Peso
+    'ultimo_peso' => $this->obtenerUltimoPeso($id_animal),
+    'fecha_ultimo_pesaje' => $this->obtenerFechaUltimoPesaje($id_animal),
+    'peso_historico' => $this->obtenerPesoHistorico($id_animal),
+
+    // Genealogía
+    'madre' => $this->obtenerMadre($animal->madre),
+    'padre' => $this->obtenerPadre($animal->padre),
+
+    // Estados
+    'estado_productivo' => $this->obtenerEstadoProductivo($id_animal),
+    'estado_reproductivo' => $this->obtenerEstadoReproductivo($id_animal),
+
+    // Crías
+    'crias' => $this->obtenerCrias($id_animal),
+
+    // Producción de leche
+    'produccion_leche' => $this->obtenerProduccionLeche($id_animal),
+
+    // Eventos reproductivos
+    'montas' => $this->obtenerMontas($id_animal),
+    'inseminaciones' => $this->obtenerInseminaciones($id_animal),
+    'palpaciones' => $this->obtenerPalpaciones($id_animal),
+
+    // Destetes
+    'destetes' => $this->obtenerDestetes($id_animal),
+];
+
 
             return response()->json([
                 'success' => true,

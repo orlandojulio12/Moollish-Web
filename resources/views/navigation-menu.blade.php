@@ -3,177 +3,186 @@
         <div class="m-header">
             <div class="logo-center">
                 <div class="moollish"></div>
-                <span class="moollish-span"
-                    style="font-size: 25px;     color :black">Moollish®</span>
+                <span class="moollish-span" style="font-size: 25px;     color :black">Moollish®</span>
             </div>
         </div>
         <div class="navbar-content">
             <ul class="nxl-navbar">
                 @php
-                    $role = Auth::check() ? Auth::user()->role->name : null;
+                $role = Auth::check() ? Auth::user()->role->name : null;
                 @endphp
                 @if ($user->membership?->is_active)
-                    @if ($role)
-                        <li class="nxl-item nxl-caption">
-                            <label>Paneles</label>
-                        </li>
-                        @if ($role == 'admin')
-                            <li class="nxl-item nxl-hasmenu">
-                                <a href="/dashboard" class="nxl-link">
-                                    <span class="nxl-micon"><span class="material-symbols-outlined">
-                                            trending_up
-                                        </span></span>
-                                    <span class="nxl-mtext">Dashboard</span><span class="nxl-arrow"></span>
-                                </a>
-                            </li>
-                        @endif
-                        <li class="nxl-item nxl-hasmenu">
-                            <a href="{{ route('inicio') }}" class="nxl-link">
-                                <span class="nxl-micon">
-                                    <span class="material-symbols-outlined">
-                                        grid_view
-                                    </span>
-                                </span>
-
-                                <span class="nxl-mtext">Inicio
-
-                                </span><span class="nxl-arrow"></span>
-                            </a>
-                        </li>
-                        @if ($role == 'admin' || $role == 'propietario')
-                            <li class="nxl-item nxl-hasmenu">
-                                <a href="{{ route('predios.index') }}" class="nxl-link">
-                                    <span class="nxl-micon"><span class="material-symbols-outlined">
-                                            villa
-                                        </span></span>
-                                    <span class="nxl-mtext">Predios</span><span class="nxl-arrow"></span>
-                                </a>
-                            </li>
-
-                            <li class="nxl-item nxl-hasmenu">
-                                <a href="{{ route('users.index') }}" class="nxl-link">
-                                    <span class="nxl-micon"><span class="material-symbols-outlined">
-                                            person
-                                        </span></span>
-                                    <span class="nxl-mtext">Usuarios</span><span class="nxl-arrow"></span>
-                                </a>
-                            </li>
-
-                            <li class="nxl-item nxl-hasmenu">
-                                <a href="{{ route('inventario.general') }}" class="nxl-link">
-                                    <span class="nxl-micon"><span class="material-symbols-outlined">
-                                            subject
-                                        </span></span>
-                                    <span class="nxl-mtext">Mis animales</span><span class="nxl-arrow"></span>
-                                </a>
-                            </li>
-                                    @endif
-                        <li class="nxl-item nxl-caption">
-                            <label>Suscripciones</label>
-                        </li>
-                        <li class="nxl-item nxl-hasmenu">
-                            <a href="{{ route('membresias') }}" class="nxl-link">
-                                <span class="nxl-micon">
-                                    <span class="material-symbols-outlined">
-                                        diamond
-                                    </span>
-                                </span>
-
-                                <span class="nxl-mtext">Mi suscripción</span><span class="nxl-arrow"></span>
-                            </a>
-                        </li>
-                        <li class="nxl-item nxl-caption">
-                            <label>Ajustes</label>
-                        </li>
-                        <li class="nxl-item nxl-hasmenu">
-                            <a href="{{ route('ajustes') }}" class="nxl-link">
-                                <span class="nxl-micon">
-                                    <span class="material-symbols-outlined">
-                                        settings
-                                    </span>
-                                </span>
-                                <span class="nxl-mtext">Configuraciones</span><span class="nxl-arrow"></span>
-                            </a>
-                        </li>
-                        {{-- Política de Uso --}}
-                        <li class="nxl-item nxl-hasmenu">
-                            <a href="{{ route('politica.uso') }}" class="nxl-link">
-                                <span class="nxl-micon">
-                                    <span class="material-symbols-outlined">
-                                        policy
-                                    </span>
-                                </span>
-                                <span class="nxl-mtext">Política de Uso</span><span class="nxl-arrow"></span>
-                            </a>
-                        </li>
-                        {{-- Información Legal --}}
-                        <li class="nxl-item nxl-hasmenu">
-                            <a href="{{ route('informacion.legal') }}" class="nxl-link">
-                                <span class="nxl-micon">
-                                    <span class="material-symbols-outlined">
-                                        gavel
-                                    </span>
-                                </span>
-                                <span class="nxl-mtext">Información Legal</span><span class="nxl-arrow"></span>
-                            </a>
-                        </li>
-
-                      {{--  <li class="nxl-item nxl-hasmenu">
-                            <a href="{{ route('offline.content') }}" class="nxl-link">
-                                <span class="nxl-micon">
-                                    <span class="material-symbols-outlined">
-                                        wifi_off
-                                        </span>
-                                </span>
-                                <span class="nxl-mtext">Modo Offline</span><span class="nxl-arrow"></span>
-                            </a>
-                        </li> --}}
-
-                        <li class="nxl-item nxl-hasmenu">
-                            <a href="{{ route('logout') }}"class="nxl-link logout-tab"
-                                onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
-                               >
-                                <span class="nxl-micon"><span class="material-symbols-outlined">
-                                        logout
-                                    </span></span>
-                                <span class="nxl-mtext">Cerrar sesión</span><span class="nxl-arrow"></span>
-                            </a>
-                            <form id="logout-form" action="{{ route('logout') }}" method="POST"
-                                style="display: none;">
-                                @csrf
-                            </form>
-                        </li>
-                    @endif
-                @else
-                    <li class="nxl-item nxl-caption">
-                        <label>Suscripciones</label>
-                    </li>
-                    <li class="nxl-item nxl-hasmenu">
-                        <a href="{{ route('membresias') }}" class="nxl-link">
-                            <span class="nxl-micon">
-                                <span class="material-symbols-outlined">
-                                    diamond
-                                </span>
+                @if ($role)
+                <li class="nxl-item nxl-caption">
+                    <label>Paneles</label>
+                </li>
+                @if ($role == 'admin')
+                <li class="nxl-item nxl-hasmenu">
+                    <a href="/dashboard" class="nxl-link">
+                        <span class="nxl-micon"><span class="material-symbols-outlined">
+                                trending_up
+                            </span></span>
+                        <span class="nxl-mtext">Dashboard</span><span class="nxl-arrow"></span>
+                    </a>
+                </li>
+                @endif
+                <li class="nxl-item nxl-hasmenu">
+                    <a href="{{ route('inicio') }}" class="nxl-link">
+                        <span class="nxl-micon">
+                            <span class="material-symbols-outlined">
+                                grid_view
                             </span>
+                        </span>
 
-                            <span class="nxl-mtext">Mi suscripción</span><span class="nxl-arrow"></span>
-                        </a>
-                    </li>
-                    <li class="nxl-item nxl-hasmenu">
-                        <a href="{{ route('logout') }}"class="nxl-link logout-tab"
-                            onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
-                            style="
+                        <span class="nxl-mtext">Inicio
+
+                        </span><span class="nxl-arrow"></span>
+                    </a>
+                </li>
+                @if ($role == 'admin' || $role == 'propietario')
+                <li class="nxl-item nxl-hasmenu">
+                    <a href="{{ route('predios.index') }}" class="nxl-link">
+                        <span class="nxl-micon"><span class="material-symbols-outlined">
+                                villa
+                            </span></span>
+                        <span class="nxl-mtext">Predios</span><span class="nxl-arrow"></span>
+                    </a>
+                </li>
+
+                <li class="nxl-item nxl-hasmenu">
+                    <a href="{{ route('users.index') }}" class="nxl-link">
+                        <span class="nxl-micon"><span class="material-symbols-outlined">
+                                person
+                            </span></span>
+                        <span class="nxl-mtext">Usuarios</span><span class="nxl-arrow"></span>
+                    </a>
+                </li>
+
+                <li class="nxl-item nxl-hasmenu">
+                    <a href="{{ route('inventario.general') }}" class="nxl-link">
+                        <span class="nxl-micon"><span class="material-symbols-outlined">
+                                subject
+                            </span></span>
+                        <span class="nxl-mtext">Mis animales</span><span class="nxl-arrow"></span>
+                    </a>
+                </li>
+                @endif
+                @if ($role == 'admin')
+                <li class="nxl-item nxl-hasmenu">
+                    <a href="{{ route('ExportePredio') }}" class="nxl-link">
+                        <span class="nxl-micon">
+                            <span class="material-symbols-outlined">
+                                table_view
+                            </span>
+                        </span>
+                        <span class="nxl-mtext">Export Caracterización</span>
+                        <span class="nxl-arrow"></span>
+                    </a>
+                </li>
+                @endif
+
+                <li class="nxl-item nxl-caption">
+                    <label>Suscripciones</label>
+                </li>
+                <li class="nxl-item nxl-hasmenu">
+                    <a href="{{ route('membresias') }}" class="nxl-link">
+                        <span class="nxl-micon">
+                            <span class="material-symbols-outlined">
+                                diamond
+                            </span>
+                        </span>
+
+                        <span class="nxl-mtext">Mi suscripción</span><span class="nxl-arrow"></span>
+                    </a>
+                </li>
+                <li class="nxl-item nxl-caption">
+                    <label>Ajustes</label>
+                </li>
+                <li class="nxl-item nxl-hasmenu">
+                    <a href="{{ route('ajustes') }}" class="nxl-link">
+                        <span class="nxl-micon">
+                            <span class="material-symbols-outlined">
+                                settings
+                            </span>
+                        </span>
+                        <span class="nxl-mtext">Configuraciones</span><span class="nxl-arrow"></span>
+                    </a>
+                </li>
+                {{-- Política de Uso --}}
+                <li class="nxl-item nxl-hasmenu">
+                    <a href="{{ route('politica.uso') }}" class="nxl-link">
+                        <span class="nxl-micon">
+                            <span class="material-symbols-outlined">
+                                policy
+                            </span>
+                        </span>
+                        <span class="nxl-mtext">Política de Uso</span><span class="nxl-arrow"></span>
+                    </a>
+                </li>
+                {{-- Información Legal --}}
+                <li class="nxl-item nxl-hasmenu">
+                    <a href="{{ route('informacion.legal') }}" class="nxl-link">
+                        <span class="nxl-micon">
+                            <span class="material-symbols-outlined">
+                                gavel
+                            </span>
+                        </span>
+                        <span class="nxl-mtext">Información Legal</span><span class="nxl-arrow"></span>
+                    </a>
+                </li>
+
+                {{-- <li class="nxl-item nxl-hasmenu">
+                    <a href="{{ route('offline.content') }}" class="nxl-link">
+                        <span class="nxl-micon">
+                            <span class="material-symbols-outlined">
+                                wifi_off
+                            </span>
+                        </span>
+                        <span class="nxl-mtext">Modo Offline</span><span class="nxl-arrow"></span>
+                    </a>
+                </li> --}}
+
+                <li class="nxl-item nxl-hasmenu">
+                    <a href="{{ route('logout') }}" class="nxl-link logout-tab"
+                        onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                        <span class="nxl-micon"><span class="material-symbols-outlined">
+                                logout
+                            </span></span>
+                        <span class="nxl-mtext">Cerrar sesión</span><span class="nxl-arrow"></span>
+                    </a>
+                    <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                        @csrf
+                    </form>
+                </li>
+                @endif
+                @else
+                <li class="nxl-item nxl-caption">
+                    <label>Suscripciones</label>
+                </li>
+                <li class="nxl-item nxl-hasmenu">
+                    <a href="{{ route('membresias') }}" class="nxl-link">
+                        <span class="nxl-micon">
+                            <span class="material-symbols-outlined">
+                                diamond
+                            </span>
+                        </span>
+
+                        <span class="nxl-mtext">Mi suscripción</span><span class="nxl-arrow"></span>
+                    </a>
+                </li>
+                <li class="nxl-item nxl-hasmenu">
+                    <a href="{{ route('logout') }}" class="nxl-link logout-tab"
+                        onclick="event.preventDefault(); document.getElementById('logout-form').submit();" style="
      ">
-                            <span class="nxl-micon"><span class="material-symbols-outlined">
-                                    logout
-                                </span></span>
-                            <span class="nxl-mtext">Cerrar sesión</span><span class="nxl-arrow"></span>
-                        </a>
-                        <form id="logout-form" action="{{ route('logout') }}" method="POST"
-                            style="display: none;">
-                            @csrf
-                        </form>
-                    </li>
+                        <span class="nxl-micon"><span class="material-symbols-outlined">
+                                logout
+                            </span></span>
+                        <span class="nxl-mtext">Cerrar sesión</span><span class="nxl-arrow"></span>
+                    </a>
+                    <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                        @csrf
+                    </form>
+                </li>
                 @endif
             </ul>
         </div>
@@ -213,21 +222,23 @@
                     <div class="membership-days" style="font-size: 12px;">
                         Plan {{ $user->membership?->membershipPlan?->nombre ?? 'Inactivo' }} /
                         @if ($user->membership)
-                            {{ (int) \Carbon\Carbon::now()->diffInDays(\Carbon\Carbon::parse($user->membership->fecha_expiracion), false) }}
+                        {{ (int)
+                        \Carbon\Carbon::now()->diffInDays(\Carbon\Carbon::parse($user->membership->fecha_expiracion),
+                        false) }}
                         @else
-                            0
+                        0
                         @endif
                         días restantes
-        </div>
-    </div>
+                    </div>
+                </div>
 
                 {{-- User Profile Dropdown - Versión fija --}}
                 <div class="border-start ps-3 ms-3">
                     @php
-                        // Dividimos el nombre del usuario en un array de palabras
-                        $userName = explode(' ', Auth::user()->name);
-                        // Obtenemos los dos primeros nombres
-                        $firstTwoNames = implode(' ', array_slice($userName, 0, 2));
+                    // Dividimos el nombre del usuario en un array de palabras
+                    $userName = explode(' ', Auth::user()->name);
+                    // Obtenemos los dos primeros nombres
+                    $firstTwoNames = implode(' ', array_slice($userName, 0, 2));
                     @endphp
 
                     <div class="d-flex align-items-center">
@@ -236,7 +247,7 @@
                         <div class="dropdown">
                             <button class="btn btn-link p-0 border-0 shadow-none" type="button" id="userMenuDropdown">
                                 @if (Auth::user()->profile_photo_path)
-                                    <div style="
+                                <div style="
                                         width: 50px;
                                         height: 50px;
                                         background-image: url('{{ asset('storage/' . Auth::user()->profile_photo_path) }}');
@@ -245,7 +256,7 @@
                                         border-radius: 50%;
                                     "></div>
                                 @else
-                                    <div style="
+                                <div style="
                                         width: 50px;
                                         height: 50px;
                                         background-color: #e2e6ea;
@@ -256,17 +267,18 @@
                                         color: #6c757d;
                                         font-size: 24px;
                                     ">
-                                        <span class="material-symbols-outlined">person</span>
-        </div>
+                                    <span class="material-symbols-outlined">person</span>
+                                </div>
                                 @endif
                             </button>
 
-                            <ul class="dropdown-menu dropdown-menu-end nxl-h-dropdown nxl-user-dropdown" id="userDropdownMenu" style="display: none">
+                            <ul class="dropdown-menu dropdown-menu-end nxl-h-dropdown nxl-user-dropdown"
+                                id="userDropdownMenu" style="display: none">
                                 <li>
                                     <div class="dropdown-header">
                                         <div class="d-flex align-items-center">
                                             @if (Auth::user()->profile_photo_path)
-                                                <div style="
+                                            <div style="
                                                     width: 50px;
                                                     height: 50px;
                                                     background-image: url('{{ asset('storage/' . Auth::user()->profile_photo_path) }}');
@@ -276,7 +288,7 @@
                                                     margin-right: 15px;
                                                 "></div>
                                             @else
-                                                <div style="
+                                            <div style="
                                                     width: 50px;
                                                     height: 50px;
                                                     background-color: #e2e6ea;
@@ -288,20 +300,21 @@
                                                     font-size: 24px;
                                                     margin-right: 15px;
                                                 ">
-                                                    <span class="material-symbols-outlined">person</span>
-                    </div>
-                @endif
+                                                <span class="material-symbols-outlined">person</span>
+                                            </div>
+                                            @endif
 
-                <div>
+                                            <div>
                                                 <h6 class="text-dark mb-0">{{ $firstTwoNames }}</h6>
                                                 <div class="column">
-                                                    <span class="fs-12 fw-medium text-muted">{{ Auth::user()->email }}</span>
+                                                    <span class="fs-12 fw-medium text-muted">{{ Auth::user()->email
+                                                        }}</span>
                                                     @if (Auth::user()->role->id == 1)
-                                                        <span class="fs-12 fw-medium text-muted">Administrador</span>
+                                                    <span class="fs-12 fw-medium text-muted">Administrador</span>
                                                     @elseif (Auth::user()->role->id == 2)
-                                                        <span class="fs-12 fw-medium text-muted">Encuestador</span>
+                                                    <span class="fs-12 fw-medium text-muted">Encuestador</span>
                                                     @elseif (Auth::user()->role->id == 3)
-                                                        <span class="fs-12 fw-medium text-muted">Propietario</span>
+                                                    <span class="fs-12 fw-medium text-muted">Propietario</span>
                                                     @endif
                                                 </div>
                                             </div>
@@ -309,19 +322,21 @@
                                     </div>
                                 </li>
                                 <li><a class="dropdown-item" href="{{ route('ajustes') }}">
-                                    <i class="feather-user"></i>
-                                    <span>Mi perfil</span>
-                                </a></li>
-                                <li><hr class="dropdown-divider"></li>
+                                        <i class="feather-user"></i>
+                                        <span>Mi perfil</span>
+                                    </a></li>
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
                                 <li><a href="{{ route('logout') }}" class="dropdown-item"
-                                    onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                                    <i class="feather-log-out"></i>
-                                    <span>Cerrar sesión</span>
-                                </a></li>
+                                        onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                        <i class="feather-log-out"></i>
+                                        <span>Cerrar sesión</span>
+                                    </a></li>
                             </ul>
                         </div>
+                    </div>
                 </div>
-            </div>
 
                 <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
                     @csrf
@@ -332,7 +347,7 @@
 </header>
 
 <script>
-// Control manual del dropdown
+    // Control manual del dropdown
 document.addEventListener('DOMContentLoaded', function() {
     var userDropdownBtn = document.getElementById('userMenuDropdown');
     var userDropdownMenu = document.getElementById('userDropdownMenu');
@@ -529,50 +544,52 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <style>
-/* Estilo para el menú desplegable */
-#userDropdownMenu {
-    position: absolute;
-    right: 0;
-    top: 100%;
-    z-index: 1000;
-    min-width: 10rem;
-    padding: 0.5rem 0;
-    background-color: #fff;
-    border: 1px solid rgba(0,0,0,.15);
-    border-radius: 0.25rem;
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.175);
-}
+    /* Estilo para el menú desplegable */
+    #userDropdownMenu {
+        position: absolute;
+        right: 0;
+        top: 100%;
+        z-index: 1000;
+        min-width: 10rem;
+        padding: 0.5rem 0;
+        background-color: #fff;
+        border: 1px solid rgba(0, 0, 0, .15);
+        border-radius: 0.25rem;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.175);
+    }
 
-/* Estilo inicial para evitar flash de contenido */
-.nxl-navigation {
-    transition: none !important;
-    visibility: hidden;
-}
+    /* Estilo inicial para evitar flash de contenido */
+    .nxl-navigation {
+        transition: none !important;
+        visibility: hidden;
+    }
 
-.nxl-navigation.initialized {
-    transition: all 0.3s ease !important;
-    visibility: visible;
-}
+    .nxl-navigation.initialized {
+        transition: all 0.3s ease !important;
+        visibility: visible;
+    }
 
-/* Cuando el menú está abierto */
-#userDropdownMenu.show {
-    display: block;
-}
+    /* Cuando el menú está abierto */
+    #userDropdownMenu.show {
+        display: block;
+    }
 
-/* Asegurar que los modales tengan un z-index mayor que cualquier otra cosa */
-.modal {
-    z-index: 1060 !important;
-}
-.modal-backdrop {
-    z-index: 1050 !important;
-    opacity: 0.5 !important;
-}
-/* Prevenir múltiples backdrops */
-.modal-backdrop ~ .modal-backdrop {
-    display: none !important;
-    opacity: 0 !important;
-    visibility: hidden !important;
-}
+    /* Asegurar que los modales tengan un z-index mayor que cualquier otra cosa */
+    .modal {
+        z-index: 1060 !important;
+    }
+
+    .modal-backdrop {
+        z-index: 1050 !important;
+        opacity: 0.5 !important;
+    }
+
+    /* Prevenir múltiples backdrops */
+    .modal-backdrop~.modal-backdrop {
+        display: none !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+    }
 </style>
 
 <main class="nxl-container open">

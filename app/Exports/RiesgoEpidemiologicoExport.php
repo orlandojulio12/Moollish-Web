@@ -17,39 +17,52 @@ use App\Models\VisitaPrediosRiesgo;
 
 class RiesgoEpidemiologicoExport implements WithMultipleSheets
 {
+    protected $prediosFiltrados;
+
+    public function __construct($prediosFiltrados = 'all')
+    {
+        $this->prediosFiltrados = $prediosFiltrados;
+    }
+
     /**
      * Retornar las hojas de cálculo
-     *
-     * @return array
      */
     public function sheets(): array
     {
         return [
-            new TipoExplotacionExport(),  // La hoja para Tipo de Explotación
-            new InforEpidemiologicaExport(),  // La hoja para Información Epidemiológica
-            new CaracterizacionRiesgoExport(),  // La hoja para Caracterización de Riesgo
-            new VisitaPrediosRiesgoExport(),  // La nueva hoja para Visita a Predios de Riesgo
+            new TipoExplotacionExport($this->prediosFiltrados),
+            new InforEpidemiologicaExport($this->prediosFiltrados),
+            new CaracterizacionRiesgoExport($this->prediosFiltrados),
+            new VisitaPrediosRiesgoExport($this->prediosFiltrados),
         ];
     }
 }
 
+// ==================== HOJA 1: TIPO EXPLOTACIÓN ====================
 class TipoExplotacionExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithStyles, WithTitle
 {
-    /**
-     * Retornar los datos de la tabla 'tp_explotacion' con relaciones
-     */
-    public function collection()
+    protected $prediosFiltrados;
+
+    public function __construct($prediosFiltrados = 'all')
     {
-        return Tipo_explotacion::with('predio')->get();
+        $this->prediosFiltrados = $prediosFiltrados;
     }
 
-    /**
-     * Mapeo de las columnas para que muestre los nombres en lugar de los IDs
-     */
+    public function collection()
+    {
+        $query = Tipo_explotacion::with('predio');
+
+        if ($this->prediosFiltrados !== 'all' && !empty($this->prediosFiltrados)) {
+            $query->whereIn('id_predio', $this->prediosFiltrados);
+        }
+
+        return $query->orderBy('id_predio')->get();
+    }
+
     public function map($tipoExplotacion): array
     {
         return [
-            $tipoExplotacion->predio ? $tipoExplotacion->predio->nombre_predio : 'Sin predio',  // Nombre del predio
+            $tipoExplotacion->predio ? $tipoExplotacion->predio->nombre_predio : 'Sin predio',
             $tipoExplotacion->bovinos,
             $tipoExplotacion->bufalinos,
             $tipoExplotacion->porcinos,
@@ -67,12 +80,11 @@ class TipoExplotacionExport implements FromCollection, WithHeadings, WithMapping
             $tipoExplotacion->mortali_x_enfermedad,
             $tipoExplotacion->mortali_x_enfermedad_cual,
             $tipoExplotacion->pre_apic_produc_explot,
+            $tipoExplotacion->created_at ? $tipoExplotacion->created_at->format('Y-m-d H:i:s') : '',
+            $tipoExplotacion->updated_at ? $tipoExplotacion->updated_at->format('Y-m-d H:i:s') : '',
         ];
     }
 
-    /**
-     * Definir las cabeceras del archivo Excel
-     */
     public function headings(): array
     {
         return [
@@ -94,51 +106,54 @@ class TipoExplotacionExport implements FromCollection, WithHeadings, WithMapping
             'Mortalidad por Enfermedades',
             'Cuáles Enfermedades Causaron Mortalidad',
             'Apicultura y Producción de Explotación',
+            'Fecha de Creación',
+            'Fecha de Actualización',
         ];
     }
 
-    /**
-     * Aplicar estilos y espaciar las celdas
-     */
     public function styles(Worksheet $sheet)
     {
-        // Estilo de cabeceras en negrita
-        $sheet->getStyle('A1:R1')->applyFromArray([
-            'font' => ['bold' => true],
+        $sheet->getStyle('A1:T1')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '548235']]
         ]);
 
-        // Aumentar el ancho de las columnas
-        foreach (range('A', 'R') as $columnID) {
+        foreach (range('A', 'T') as $columnID) {
             $sheet->getColumnDimension($columnID)->setWidth(25);
         }
     }
 
-    /**
-     * Definir el título de la hoja
-     */
     public function title(): string
     {
         return 'TIPO EXPLOTACIÓN';
     }
 }
 
+// ==================== HOJA 2: INFORMACIÓN EPIDEMIOLÓGICA ====================
 class InforEpidemiologicaExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithStyles, WithTitle
 {
-    /**
-     * Retornar los datos de la tabla 'infor_epidemiologica' con relaciones
-     */
-    public function collection()
+    protected $prediosFiltrados;
+
+    public function __construct($prediosFiltrados = 'all')
     {
-        return InforEpidemiologica::with('predio')->get();
+        $this->prediosFiltrados = $prediosFiltrados;
     }
 
-    /**
-     * Mapeo de las columnas para que muestre los nombres en lugar de los IDs
-     */
+    public function collection()
+    {
+        $query = InforEpidemiologica::with('predio');
+
+        if ($this->prediosFiltrados !== 'all' && !empty($this->prediosFiltrados)) {
+            $query->whereIn('id_predio', $this->prediosFiltrados);
+        }
+
+        return $query->orderBy('id_predio')->get();
+    }
+
     public function map($inforEpidemiologica): array
     {
         return [
-            $inforEpidemiologica->predio ? $inforEpidemiologica->predio->nombre_predio : 'Sin predio',  // Nombre del predio
+            $inforEpidemiologica->predio ? $inforEpidemiologica->predio->nombre_predio : 'Sin predio',
             $inforEpidemiologica->anim_enferm_control,
             $inforEpidemiologica->anim_enferm_control_cant,
             $inforEpidemiologica->cuadr_clinc_sospec,
@@ -146,12 +161,11 @@ class InforEpidemiologicaExport implements FromCollection, WithHeadings, WithMap
             $inforEpidemiologica->toma_muestra,
             $inforEpidemiologica->toma_muestra_tipos,
             $inforEpidemiologica->toma_muestra_numeros,
+            $inforEpidemiologica->created_at ? $inforEpidemiologica->created_at->format('Y-m-d H:i:s') : '',
+            $inforEpidemiologica->updated_at ? $inforEpidemiologica->updated_at->format('Y-m-d H:i:s') : '',
         ];
     }
 
-    /**
-     * Definir las cabeceras del archivo Excel
-     */
     public function headings(): array
     {
         return [
@@ -163,51 +177,54 @@ class InforEpidemiologicaExport implements FromCollection, WithHeadings, WithMap
             'Toma de Muestra',
             'Tipos de Muestra',
             'Número de Muestras',
+            'Fecha de Creación',
+            'Fecha de Actualización',
         ];
     }
 
-    /**
-     * Aplicar estilos y espaciar las celdas
-     */
     public function styles(Worksheet $sheet)
     {
-        // Estilo de cabeceras en negrita
-        $sheet->getStyle('A1:H1')->applyFromArray([
-            'font' => ['bold' => true],
+        $sheet->getStyle('A1:J1')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => 'C00000']]
         ]);
 
-        // Aumentar el ancho de las columnas
-        foreach (range('A', 'H') as $columnID) {
+        foreach (range('A', 'J') as $columnID) {
             $sheet->getColumnDimension($columnID)->setWidth(25);
         }
     }
 
-    /**
-     * Definir el título de la hoja
-     */
     public function title(): string
     {
         return 'INFORMACIÓN EPIDEMIOLÓGICA';
     }
 }
 
+// ==================== HOJA 3: CARACTERIZACIÓN DE RIESGO ====================
 class CaracterizacionRiesgoExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithStyles, WithTitle
 {
-    /**
-     * Retornar los datos de la tabla 'caracterizacion_riesgo' con relaciones
-     */
-    public function collection()
+    protected $prediosFiltrados;
+
+    public function __construct($prediosFiltrados = 'all')
     {
-        return CarazterizacionRiesgo::with('predio')->get();
+        $this->prediosFiltrados = $prediosFiltrados;
     }
 
-    /**
-     * Mapeo de las columnas para que muestre los nombres en lugar de los IDs
-     */
+    public function collection()
+    {
+        $query = CarazterizacionRiesgo::with('predio');
+
+        if ($this->prediosFiltrados !== 'all' && !empty($this->prediosFiltrados)) {
+            $query->whereIn('id_predio', $this->prediosFiltrados);
+        }
+
+        return $query->orderBy('id_predio')->get();
+    }
+
     public function map($caracterizacionRiesgo): array
     {
         return [
-            $caracterizacionRiesgo->predio ? $caracterizacionRiesgo->predio->nombre_predio : 'Sin predio',  // Nombre del predio
+            $caracterizacionRiesgo->predio ? $caracterizacionRiesgo->predio->nombre_predio : 'Sin predio',
             $caracterizacionRiesgo->colinda_establecim_riesgo,
             $caracterizacionRiesgo->colinda_establecim_cual,
             $caracterizacionRiesgo->ubica_en_via,
@@ -225,12 +242,11 @@ class CaracterizacionRiesgoExport implements FromCollection, WithHeadings, WithM
             $caracterizacionRiesgo->asistencia_tecnica_frecuen,
             $caracterizacionRiesgo->atiend_otr_predi,
             $caracterizacionRiesgo->atiend_otr_predi_cual,
+            $caracterizacionRiesgo->created_at ? $caracterizacionRiesgo->created_at->format('Y-m-d H:i:s') : '',
+            $caracterizacionRiesgo->updated_at ? $caracterizacionRiesgo->updated_at->format('Y-m-d H:i:s') : '',
         ];
     }
 
-    /**
-     * Definir las cabeceras del archivo Excel
-     */
     public function headings(): array
     {
         return [
@@ -252,97 +268,88 @@ class CaracterizacionRiesgoExport implements FromCollection, WithHeadings, WithM
             'Frecuencia de Asistencia Técnica',
             'Atiende Otros Predios',
             '¿Cuáles Predios?',
+            'Fecha de Creación',
+            'Fecha de Actualización',
         ];
     }
 
-    /**
-     * Aplicar estilos y espaciar las celdas
-     */
     public function styles(Worksheet $sheet)
     {
-        // Estilo de cabeceras en negrita
-        $sheet->getStyle('A1:R1')->applyFromArray([
-            'font' => ['bold' => true],
+        $sheet->getStyle('A1:T1')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FF6600']]
         ]);
 
-        // Aumentar el ancho de las columnas
-        foreach (range('A', 'R') as $columnID) {
+        foreach (range('A', 'T') as $columnID) {
             $sheet->getColumnDimension($columnID)->setWidth(25);
         }
     }
 
-    /**
-     * Definir el título de la hoja
-     */
     public function title(): string
     {
         return 'CARACTERIZACIÓN DE RIESGO';
     }
 }
 
+// ==================== HOJA 4: VISITA A PREDIOS DE RIESGO ====================
 class VisitaPrediosRiesgoExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithStyles, WithTitle
 {
-    /**
-     * Retornar los datos de la tabla 'visita_predios_riesgo' con relaciones
-     */
-    public function collection()
+    protected $prediosFiltrados;
+
+    public function __construct($prediosFiltrados = 'all')
     {
-        return VisitaPrediosRiesgo::with('predio')->get();
+        $this->prediosFiltrados = $prediosFiltrados;
     }
 
-    /**
-     * Mapeo de las columnas para que muestre los nombres en lugar de los IDs
-     */
+    public function collection()
+    {
+        $query = VisitaPrediosRiesgo::with('predio');
+
+        if ($this->prediosFiltrados !== 'all' && !empty($this->prediosFiltrados)) {
+            $query->whereIn('id_predio', $this->prediosFiltrados);
+        }
+
+        return $query->orderBy('id_predio')->get();
+    }
+
     public function map($visitaPrediosRiesgo): array
     {
         return [
-            $visitaPrediosRiesgo->predio ? $visitaPrediosRiesgo->predio->nombre_predio : 'Sin predio',  // Nombre del predio
-            $visitaPrediosRiesgo->enferm_baj_vigil,
-            $visitaPrediosRiesgo->especie,
-            $visitaPrediosRiesgo->num_anim_inspec,
-            $visitaPrediosRiesgo->toma_muestras,
-            $visitaPrediosRiesgo->toma_muestra_tipo,
-            $visitaPrediosRiesgo->num_muestras,
+            $visitaPrediosRiesgo->predio ? $visitaPrediosRiesgo->predio->nombre_predio : 'Sin predio',
+            $visitaPrediosRiesgo->fecha_visita,
+            $visitaPrediosRiesgo->observaciones,
+            $visitaPrediosRiesgo->responsable,
+            $visitaPrediosRiesgo->created_at ? $visitaPrediosRiesgo->created_at->format('Y-m-d H:i:s') : '',
+            $visitaPrediosRiesgo->updated_at ? $visitaPrediosRiesgo->updated_at->format('Y-m-d H:i:s') : '',
         ];
     }
 
-    /**
-     * Definir las cabeceras del archivo Excel
-     */
     public function headings(): array
     {
         return [
             'Nombre del Predio',
-            'Enfermedades bajo vigilancia',
-            'Especie',
-            'Número de animales inspeccionados',
-            'Toma de muestras',
-            'Tipo de muestra',
-            'Número de muestras',
+            'Fecha de Visita',
+            'Observaciones',
+            'Responsable',
+            'Fecha de Creación',
+            'Fecha de Actualización',
         ];
     }
 
-    /**
-     * Aplicar estilos y espaciar las celdas
-     */
     public function styles(Worksheet $sheet)
     {
-        // Estilo de cabeceras en negrita
-        $sheet->getStyle('A1:G1')->applyFromArray([
-            'font' => ['bold' => true],
+        $sheet->getStyle('A1:F1')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '7030A0']]
         ]);
 
-        // Aumentar el ancho de las columnas
-        foreach (range('A', 'G') as $columnID) {
+        foreach (range('A', 'F') as $columnID) {
             $sheet->getColumnDimension($columnID)->setWidth(25);
         }
     }
 
-    /**
-     * Definir el título de la hoja
-     */
     public function title(): string
     {
-        return 'VISITA A PREDIOS DE RIESGO';
+        return 'VISITA PREDIOS RIESGO';
     }
 }

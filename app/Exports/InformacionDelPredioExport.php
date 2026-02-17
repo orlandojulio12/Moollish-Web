@@ -20,29 +20,49 @@ use Maatwebsite\Excel\Concerns\WithTitle;
 
 class InformacionDelPredioExport implements WithMultipleSheets
 {
+    protected $prediosFiltrados;
+
+    public function __construct($prediosFiltrados = 'all')
+    {
+        $this->prediosFiltrados = $prediosFiltrados;
+    }
+
     /**
      * Se definen las hojas del archivo Excel
      */
     public function sheets(): array
     {
         return [
-            new AreasSheetExport(),  // Hoja 1
-            new InfoTierraAguaSheetExport(),  // Hoja 2
-            new ManPastPotrCerSheetExport(),  // Hoja 3
-            new ManGenGanadoSheetExport(),  // Hoja 4
-            new InformAspectMedAmbientSheetExport(),  // Hoja 5
-            new InstalacionesEquiposSheetExport(),  // Hoja 6
-            new GestionInformacionSheetExport(),  // Hoja 7: Gestión de Información
+            new AreasSheetExport($this->prediosFiltrados),
+            new InfoTierraAguaSheetExport($this->prediosFiltrados),
+            new ManPastPotrCerSheetExport($this->prediosFiltrados),
+            new ManGenGanadoSheetExport($this->prediosFiltrados),
+            new InformAspectMedAmbientSheetExport($this->prediosFiltrados),
+            new InstalacionesEquiposSheetExport($this->prediosFiltrados),
+            new GestionInformacionSheetExport($this->prediosFiltrados),
         ];
     }
 }
 
-// Exportar datos de Áreas en la primera hoja y asignar nombre a la hoja
+// ==================== HOJA 1: ÁREAS ====================
 class AreasSheetExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithStyles, WithTitle
 {
+    protected $prediosFiltrados;
+
+    public function __construct($prediosFiltrados = 'all')
+    {
+        $this->prediosFiltrados = $prediosFiltrados;
+    }
+
     public function collection()
     {
-        return Areas::with(['predio', 'TiposAreas'])->get();
+        $query = Areas::with(['predio', 'TiposAreas']);
+
+        if ($this->prediosFiltrados !== 'all' && !empty($this->prediosFiltrados)) {
+            $query->whereIn('id_predio', $this->prediosFiltrados);
+        }
+
+        return $query->orderBy('id_predio')->get();
     }
 
     public function map($area): array
@@ -55,6 +75,8 @@ class AreasSheetExport implements FromCollection, WithHeadings, WithMapping, Sho
             $area->materiales_establecidos,
             $area->cant_total,
             $area->imagen,
+            $area->created_at ? $area->created_at->format('Y-m-d H:i:s') : '',
+            $area->updated_at ? $area->updated_at->format('Y-m-d H:i:s') : '',
         ];
     }
 
@@ -68,16 +90,19 @@ class AreasSheetExport implements FromCollection, WithHeadings, WithMapping, Sho
             'Materiales Establecidos',
             'Cantidad Total',
             'Imagen',
+            'Fecha de Creación',
+            'Fecha de Actualización',
         ];
     }
 
     public function styles(Worksheet $sheet)
     {
-        $sheet->getStyle('A1:G1')->applyFromArray([
-            'font' => ['bold' => true],
+        $sheet->getStyle('A1:I1')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '4472C4']]
         ]);
 
-        foreach (range('A', 'G') as $columnID) {
+        foreach (range('A', 'I') as $columnID) {
             $sheet->getColumnDimension($columnID)->setWidth(25);
         }
     }
@@ -88,12 +113,25 @@ class AreasSheetExport implements FromCollection, WithHeadings, WithMapping, Sho
     }
 }
 
-// Exportar datos de info_tierra_agua en la segunda hoja y asignar nombre a la hoja
+// ==================== HOJA 2: INFO TIERRA Y AGUA ====================
 class InfoTierraAguaSheetExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithStyles, WithTitle
 {
+    protected $prediosFiltrados;
+
+    public function __construct($prediosFiltrados = 'all')
+    {
+        $this->prediosFiltrados = $prediosFiltrados;
+    }
+
     public function collection()
     {
-        return InfoTierraAgua::with('Predios')->get();
+        $query = InfoTierraAgua::with('Predios');
+
+        if ($this->prediosFiltrados !== 'all' && !empty($this->prediosFiltrados)) {
+            $query->whereIn('id_predio', $this->prediosFiltrados);
+        }
+
+        return $query->orderBy('id_predio')->get();
     }
 
     public function map($info): array
@@ -111,6 +149,8 @@ class InfoTierraAguaSheetExport implements FromCollection, WithHeadings, WithMap
             $info->disp_agua_durant_veran_anim_fuente,
             $info->disp_agua_durant_veran_riesg,
             $info->disp_agua_durant_veran_riesg_fuente,
+            $info->created_at ? $info->created_at->format('Y-m-d H:i:s') : '',
+            $info->updated_at ? $info->updated_at->format('Y-m-d H:i:s') : '',
         ];
     }
 
@@ -129,16 +169,19 @@ class InfoTierraAguaSheetExport implements FromCollection, WithHeadings, WithMap
             'Fuente de Agua para Animales en Verano',
             'Disponibilidad de Agua para Riego en Verano',
             'Fuente de Agua para Riego en Verano',
+            'Fecha de Creación',
+            'Fecha de Actualización',
         ];
     }
 
     public function styles(Worksheet $sheet)
     {
-        $sheet->getStyle('A1:L1')->applyFromArray([
-            'font' => ['bold' => true],
+        $sheet->getStyle('A1:N1')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '4472C4']]
         ]);
 
-        foreach (range('A', 'L') as $columnID) {
+        foreach (range('A', 'N') as $columnID) {
             $sheet->getColumnDimension($columnID)->setWidth(25);
         }
     }
@@ -149,12 +192,25 @@ class InfoTierraAguaSheetExport implements FromCollection, WithHeadings, WithMap
     }
 }
 
-// Exportar datos de man_past_potr_cerc en la tercera hoja y asignar nombre a la hoja
+// ==================== HOJA 3: MANEJO DE PASTOS ====================
 class ManPastPotrCerSheetExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithStyles, WithTitle
 {
+    protected $prediosFiltrados;
+
+    public function __construct($prediosFiltrados = 'all')
+    {
+        $this->prediosFiltrados = $prediosFiltrados;
+    }
+
     public function collection()
     {
-        return ManPastPotrCer::with('propietarios')->get();
+        $query = ManPastPotrCer::with('propietarios');
+
+        if ($this->prediosFiltrados !== 'all' && !empty($this->prediosFiltrados)) {
+            $query->whereIn('id_predio', $this->prediosFiltrados);
+        }
+
+        return $query->orderBy('id_predio')->get();
     }
 
     public function map($past): array
@@ -186,6 +242,8 @@ class ManPastPotrCerSheetExport implements FromCollection, WithHeadings, WithMap
             $past->cercas_electricas,
             $past->la_produccion_forraje_suficiente_año,
             $past->porque,
+            $past->created_at ? $past->created_at->format('Y-m-d H:i:s') : '',
+            $past->updated_at ? $past->updated_at->format('Y-m-d H:i:s') : '',
         ];
     }
 
@@ -194,101 +252,172 @@ class ManPastPotrCerSheetExport implements FromCollection, WithHeadings, WithMap
         return [
             'Nombre del Predio',
             'Área Destinada a Pastos',
-            'Fertilización de Potreros',
-            'Fertilización de Potreros Producción',
-            'Fertilización de Potreros Cuantas Veces al Año',
-            'Presencia de Plagas o Enfermedades',
-            'Tipos de Plagas o Enfermedades',
-            'Control de Plagas',
-            'Control de Plagas Producción',
-            'Control de Plagas Cuantas Veces al Año',
-            'Control de Maleza',
-            'Control de Maleza Producción',
-            'Control de Maleza Cuantas Veces al Año',
+            'Realiza Fertilización de Potreros',
+            'Producto de Fertilización',
+            'Cantidad de Fertilización al Año',
+            'Presencia de Plagas y Enfermedades',
+            'Tipos de Plagas y Enfermedades',
+            'Realiza Control de Plagas',
+            'Producto para Control de Plagas',
+            'Cantidad de Control de Plagas al Año',
+            'Realiza Control de Maleza',
+            'Producto para Control de Maleza',
+            'Cantidad de Control de Maleza al Año',
             'Presencia de Heladas',
             'Intensidad de Heladas',
             'Épocas de Heladas',
             'División de Potreros',
-            'Cómo se Dividen los Potreros',
+            '¿Cómo están Divididos los Potreros?',
             'Tipo de Pastoreo',
-            'Días de Ocupación del Pastoreo Rotacional',
-            'Días de Descanso del Pastoreo Rotacional',
+            'Días de Ocupación (Rotacional)',
+            'Días de Descanso (Rotacional)',
             'Cercas',
             'Cercas de Púas',
             'Cercas Eléctricas',
-            'Producción de Forraje Suficiente Todo el Año',
-            'Razón de Insuficiencia de Forraje',
+            'Producción de Forraje Suficiente en el Año',
+            '¿Por qué?',
+            'Fecha de Creación',
+            'Fecha de Actualización',
         ];
     }
 
     public function styles(Worksheet $sheet)
     {
-        $sheet->getStyle('A1:Z1')->applyFromArray([
-            'font' => ['bold' => true],
+        $sheet->getStyle('A1:AB1')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '70AD47']]
         ]);
 
-        foreach (range('A', 'Z') as $columnID) {
+        foreach (range('A', 'AB') as $columnID) {
             $sheet->getColumnDimension($columnID)->setWidth(25);
         }
     }
 
     public function title(): string
     {
-        return 'MANEJO DE PASTOS';
+        return 'MANEJO DE PASTOS Y POTREROS';
     }
 }
 
+// ==================== HOJA 4: MANEJO GENERAL DE GANADO ====================
 class ManGenGanadoSheetExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithStyles, WithTitle
 {
-    /**
-     * Retornar los datos de la tabla 'man_gen_ganado' con relaciones
-     */
-    public function collection()
+    protected $prediosFiltrados;
+
+    public function __construct($prediosFiltrados = 'all')
     {
-        return ManGenGanado::with(['propietarios', 'razas'])->get();
+        $this->prediosFiltrados = $prediosFiltrados;
     }
 
-    /**
-     * Mapeo de las columnas para que muestre los nombres en lugar de los IDs
-     */
+    public function collection()
+    {
+        $query = ManGenGanado::with(['predio', 'razas']);
+
+        if ($this->prediosFiltrados !== 'all' && !empty($this->prediosFiltrados)) {
+            $query->whereIn('id_predio', $this->prediosFiltrados);
+        }
+
+        return $query->orderBy('id_predio')->get();
+    }
+
     public function map($ganado): array
     {
         return [
-            $ganado->propietarios ? $ganado->propietarios->nombre_predio : 'Sin predio',  // Nombre del predio
-            $ganado->razas ? $ganado->razas->nombre_razas : 'Sin raza',  // Nombre de la raza de ganado
+            // Columna 1: Nombre del Predio
+            $ganado->predio ? $ganado->predio->nombre_predio : 'Sin predio',
+            
+            // Columna 2: Raza de Ganado
+            $ganado->razas ? $ganado->razas->nombre_razas : 'Sin raza',
+            
+            // Columna 3: ident_animales (NO identif_anim)
             $ganado->ident_animales,
+            
+            // Columna 4: sistema_cria_ternero (NO sist_cria_ternero)
             $ganado->sistema_cria_ternero,
+            
+            // Columna 5: aliment_ternero (NO alimentacion_ternero)
             $ganado->aliment_ternero,
+            
+            // Columna 6: sistem_levant_animal (NO sist_levante_animal)
             $ganado->sistem_levant_animal,
+            
+            // Columna 7: manej_hembras_prox (NO man_hembr_prox_parir)
             $ganado->manej_hembras_prox,
+            
+            // Columna 8: manej_vacas_secas
             $ganado->manej_vacas_secas,
+            
+            // Columna 9: tipo_ordeño
             $ganado->tipo_ordeño,
+            
+            // Columna 10: sistem_servic_reproduct (NO sist_servic_reproduct)
             $ganado->sistem_servic_reproduct,
+            
+            // Columna 11: form_program_servicios (NO forma_progr_servic)
             $ganado->form_program_servicios,
+            
+            // Columna 12: pesaje_animal (NO pesaje_animales)
             $ganado->pesaje_animal,
+            
+            // Columna 13: cuantos_animal_pesa (NO num_animl_pesados)
             $ganado->cuantos_animal_pesa,
+            
+            // Columna 14: control_parasito_extern (NO control_paras_externos)
             $ganado->control_parasito_extern,
+            
+            // Columna 15: control_parasito_extern_produc (NO control_paras_externos_product)
             $ganado->control_parasito_extern_produc,
+            
+            // Columna 16: control_parasito_extern_frecuenc (NO control_paras_externos_frecuen)
             $ganado->control_parasito_extern_frecuenc,
+            
+            // Columna 17: control_parasito_intern (NO control_paras_internos)
             $ganado->control_parasito_intern,
+            
+            // Columna 18: control_parasito_intern_produc (NO control_paras_internos_product)
             $ganado->control_parasito_intern_produc,
+            
+            // Columna 19: control_parasito_intern_frecuenc (NO control_paras_internos_frecuen)
             $ganado->control_parasito_intern_frecuenc,
+            
+            // Columna 20: sumin_sal (NO suministro_sal)
             $ganado->sumin_sal,
+            
+            // Columna 21: a_sal_add_premezcla (NO sal_adicion_premix)
             $ganado->a_sal_add_premezcla,
+            
+            // Columna 22: a_sal_add_premezcla_especifique (NO sal_adicion_premix_especif)
             $ganado->a_sal_add_premezcla_especifique,
+            
+            // Columna 23: como_manej_ganad_veran (NO manejo_gand_verano)
             $ganado->como_manej_ganad_veran,
+            
+            // Columna 24: como_manej_ganad_invier (NO manejo_gand_invierno)
             $ganado->como_manej_ganad_invier,
+            
+            // Columna 25: r_pesaje_leche_hembr_lactantes (NO pesaj_leche_hembr_lactante)
             $ganado->r_pesaje_leche_hembr_lactantes,
+            
+            // Columna 26: r_pesaje_leche_hembr_periodicidad (NO period_pesaj_leche)
             $ganado->r_pesaje_leche_hembr_periodicidad,
+            
+            // Columna 27: suplement_ganad_epoc_criti (NO suplement_epoc_critic)
             $ganado->suplement_ganad_epoc_criti,
+            
+            // Columna 28: suplement_ganad_epoc_criti_con_que (NO suplement_epoc_critic_con_que)
             $ganado->suplement_ganad_epoc_criti_con_que,
+            
+            // Columna 29: suplement_ganad_epoc_criti_que_lotes (NO suplement_epoc_criti_que_lotes)
             $ganado->suplement_ganad_epoc_criti_que_lotes,
+            
+            // Columna 30: Fecha de Creación
+            $ganado->created_at ? $ganado->created_at->format('Y-m-d H:i:s') : '',
+            
+            // Columna 31: Fecha de Actualización
+            $ganado->updated_at ? $ganado->updated_at->format('Y-m-d H:i:s') : '',
         ];
     }
 
-    /**
-     * Definir las cabeceras del archivo Excel
-     */
     public function headings(): array
     {
         return [
@@ -321,61 +450,63 @@ class ManGenGanadoSheetExport implements FromCollection, WithHeadings, WithMappi
             'Suplementación en Épocas Críticas',
             'Con qué se Suplementa en Épocas Críticas',
             'Lotes que Reciben Suplementación',
+            'Fecha de Creación',
+            'Fecha de Actualización',
         ];
     }
 
-    /**
-     * Aplicar estilos y espaciar las celdas
-     */
     public function styles(Worksheet $sheet)
     {
-        // Estilo de cabeceras en negrita
-        $sheet->getStyle('A1:AC1')->applyFromArray([
-            'font' => ['bold' => true],
+        $sheet->getStyle('A1:AE1')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFC000']]
         ]);
 
-        // Aumentar el ancho de las columnas
-        foreach (range('A', 'AC') as $columnID) {
+        foreach (range('A', 'AE') as $columnID) {
             $sheet->getColumnDimension($columnID)->setWidth(25);
         }
     }
 
-    /**
-     * Asignar el título de la hoja
-     */
     public function title(): string
     {
         return 'MANEJO DE GANADO';
     }
 }
 
+// ==================== HOJA 5: MEDIO AMBIENTE ====================
 class InformAspectMedAmbientSheetExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithStyles, WithTitle
 {
-    /**
-     * Retornar los datos de la tabla 'inform_aspect_med_ambient' con relaciones
-     */
-    public function collection()
+    protected $prediosFiltrados;
+
+    public function __construct($prediosFiltrados = 'all')
     {
-        return InformAspectMedAmbient::with(['Predios'])->get();
+        $this->prediosFiltrados = $prediosFiltrados;
     }
 
-    /**
-     * Mapeo de las columnas para que muestre los nombres en lugar de los IDs
-     */
+    public function collection()
+    {
+        $query = InformAspectMedAmbient::with(['Predios']);
+
+        if ($this->prediosFiltrados !== 'all' && !empty($this->prediosFiltrados)) {
+            $query->whereIn('id_predio', $this->prediosFiltrados);
+        }
+
+        return $query->orderBy('id_predio')->get();
+    }
+
     public function map($ambient): array
     {
         return [
-            $ambient->Predios ? $ambient->Predios->nombre_predio : 'Sin predio',  // Nombre del predio
+            $ambient->Predios ? $ambient->Predios->nombre_predio : 'Sin predio',
             $ambient->dispos_aguas_servid,
             $ambient->dispos_excrement_bovinos,
             $ambient->manejo_basuras,
             $ambient->manejo_empaq_produc_quimic,
+            $ambient->created_at ? $ambient->created_at->format('Y-m-d H:i:s') : '',
+            $ambient->updated_at ? $ambient->updated_at->format('Y-m-d H:i:s') : '',
         ];
     }
 
-    /**
-     * Definir las cabeceras del archivo Excel
-     */
     public function headings(): array
     {
         return [
@@ -384,61 +515,63 @@ class InformAspectMedAmbientSheetExport implements FromCollection, WithHeadings,
             'Disposición de Excrementos Bovinos',
             'Manejo de Basuras',
             'Manejo de Empaques de Productos Químicos',
+            'Fecha de Creación',
+            'Fecha de Actualización',
         ];
     }
 
-    /**
-     * Aplicar estilos y espaciar las celdas
-     */
     public function styles(Worksheet $sheet)
     {
-        // Estilo de cabeceras en negrita
-        $sheet->getStyle('A1:E1')->applyFromArray([
-            'font' => ['bold' => true],
+        $sheet->getStyle('A1:G1')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '70AD47']]
         ]);
 
-        // Aumentar el ancho de las columnas
-        foreach (range('A', 'E') as $columnID) {
+        foreach (range('A', 'G') as $columnID) {
             $sheet->getColumnDimension($columnID)->setWidth(25);
         }
     }
 
-    /**
-     * Asignar el título de la hoja
-     */
     public function title(): string
     {
         return 'INFORMACIÓN MEDIO AMBIENTALES';
     }
 }
 
+// ==================== HOJA 6: INSTALACIONES Y EQUIPOS ====================
 class InstalacionesEquiposSheetExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithStyles, WithTitle
 {
-    /**
-     * Retornar los datos de la tabla 'instalaciones_equipos' con relaciones
-     */
-    public function collection()
+    protected $prediosFiltrados;
+
+    public function __construct($prediosFiltrados = 'all')
     {
-        return InstalacionesEquipos::with(['Predios', 'tipos_equipos'])->get();
+        $this->prediosFiltrados = $prediosFiltrados;
     }
 
-    /**
-     * Mapeo de las columnas para que muestre los nombres en lugar de los IDs
-     */
+    public function collection()
+    {
+        $query = InstalacionesEquipos::with(['Predios', 'tipos_equipos']);
+
+        if ($this->prediosFiltrados !== 'all' && !empty($this->prediosFiltrados)) {
+            $query->whereIn('id_predio', $this->prediosFiltrados);
+        }
+
+        return $query->orderBy('id_predio')->get();
+    }
+
     public function map($equipo): array
     {
         return [
-            $equipo->Predios ? $equipo->Predios->nombre_predio : 'Sin predio',  // Nombre del predio
-            $equipo->tipos_equipos ? $equipo->tipos_equipos->nombre_tipo : 'Sin tipo de equipo',  // Nombre del tipo de equipo
+            $equipo->Predios ? $equipo->Predios->nombre_predio : 'Sin predio',
+            $equipo->tipos_equipos ? $equipo->tipos_equipos->nombre_tipo : 'Sin tipo de equipo',
             $equipo->si,
             $equipo->no,
             $equipo->especificar,
+            $equipo->created_at ? $equipo->created_at->format('Y-m-d H:i:s') : '',
+            $equipo->updated_at ? $equipo->updated_at->format('Y-m-d H:i:s') : '',
         ];
     }
 
-    /**
-     * Definir las cabeceras del archivo Excel
-     */
     public function headings(): array
     {
         return [
@@ -447,51 +580,54 @@ class InstalacionesEquiposSheetExport implements FromCollection, WithHeadings, W
             'Si',
             'No',
             'Especificar',
+            'Fecha de Creación',
+            'Fecha de Actualización',
         ];
     }
 
-    /**
-     * Aplicar estilos y espaciar las celdas
-     */
     public function styles(Worksheet $sheet)
     {
-        // Estilo de cabeceras en negrita
-        $sheet->getStyle('A1:E1')->applyFromArray([
-            'font' => ['bold' => true],
+        $sheet->getStyle('A1:G1')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => 'ED7D31']]
         ]);
 
-        // Aumentar el ancho de las columnas
-        foreach (range('A', 'E') as $columnID) {
+        foreach (range('A', 'G') as $columnID) {
             $sheet->getColumnDimension($columnID)->setWidth(25);
         }
     }
 
-    /**
-     * Asignar el título de la hoja
-     */
     public function title(): string
     {
         return 'INSTALACIONES Y EQUIPOS';
     }
 }
 
+// ==================== HOJA 7: GESTIÓN DE INFORMACIÓN ====================
 class GestionInformacionSheetExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithStyles, WithTitle
 {
-    /**
-     * Retornar los datos de la tabla 'gestion_informacion' con relaciones
-     */
-    public function collection()
+    protected $prediosFiltrados;
+
+    public function __construct($prediosFiltrados = 'all')
     {
-        return GestionInformacion::with(['Predios'])->get();
+        $this->prediosFiltrados = $prediosFiltrados;
     }
 
-    /**
-     * Mapeo de las columnas para que muestre los nombres en lugar de los IDs
-     */
+    public function collection()
+    {
+        $query = GestionInformacion::with(['Predios']);
+
+        if ($this->prediosFiltrados !== 'all' && !empty($this->prediosFiltrados)) {
+            $query->whereIn('id_predio', $this->prediosFiltrados);
+        }
+
+        return $query->orderBy('id_predio')->get();
+    }
+
     public function map($gestion): array
     {
         return [
-            $gestion->Predios ? $gestion->Predios->nombre_predio : 'Sin predio',  // Nombre del predio
+            $gestion->Predios ? $gestion->Predios->nombre_predio : 'Sin predio',
             $gestion->donde_regis_info_finca,
             $gestion->los_registros_son,
             $gestion->calcula_indicadores,
@@ -500,12 +636,11 @@ class GestionInformacionSheetExport implements FromCollection, WithHeadings, Wit
             $gestion->la_informacion_es,
             $gestion->utiliza_software_monitore,
             $gestion->utiliza_software_monitore_cual,
+            $gestion->created_at ? $gestion->created_at->format('Y-m-d H:i:s') : '',
+            $gestion->updated_at ? $gestion->updated_at->format('Y-m-d H:i:s') : '',
         ];
     }
 
-    /**
-     * Definir las cabeceras del archivo Excel
-     */
     public function headings(): array
     {
         return [
@@ -518,28 +653,23 @@ class GestionInformacionSheetExport implements FromCollection, WithHeadings, Wit
             'La Información es',
             'Utiliza Software para Monitoreo',
             'Utiliza Software para Monitoreo (Cuál)',
+            'Fecha de Creación',
+            'Fecha de Actualización',
         ];
     }
 
-    /**
-     * Aplicar estilos y espaciar las celdas
-     */
     public function styles(Worksheet $sheet)
     {
-        // Estilo de cabeceras en negrita
-        $sheet->getStyle('A1:I1')->applyFromArray([
-            'font' => ['bold' => true],
+        $sheet->getStyle('A1:K1')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '5B9BD5']]
         ]);
 
-        // Aumentar el ancho de las columnas
-        foreach (range('A', 'I') as $columnID) {
+        foreach (range('A', 'K') as $columnID) {
             $sheet->getColumnDimension($columnID)->setWidth(25);
         }
     }
 
-    /**
-     * Asignar el título de la hoja
-     */
     public function title(): string
     {
         return 'GESTIÓN DE INFORMACIÓN';
