@@ -79,6 +79,15 @@
                         <span class="nxl-arrow"></span>
                     </a>
                 </li>
+                <li class="nxl-item nxl-hasmenu">
+                    <a href="{{ route('dashboards.index') }}" class="nxl-link">
+                        <span class="nxl-micon"><span class="material-symbols-outlined">
+                                trending_up
+                            </span></span>
+                        <span class="nxl-mtext">Dashboard Caracterización</span><span class="nxl-arrow"></span>
+                    </a>
+                </li>
+
                 @endif
 
                 <li class="nxl-item nxl-caption">
