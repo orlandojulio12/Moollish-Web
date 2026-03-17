@@ -462,6 +462,28 @@
                         </span>
                     </div>
                 </a>
+
+                <a href="{{ route('reportes.preneces') }}">
+                    <div class="grid-card-end">
+                        <span class="light-text">Reportes</span>
+                        <span class="title-card-end">Preñeces</span>
+                        <div class="reproduccion-animal-orange"></div>
+                        <span class="description">
+                            Seguimiento de gestación y proyección de partos.
+                        </span>
+                    </div>
+                </a>
+
+                <a href="{{ route('reportes.gananciaPeso') }}">
+                    <div class="grid-card-end">
+                        <span class="light-text">Reportes</span>
+                        <span class="title-card-end">Ganancia de Peso</span>
+                        <div class="novilla-orange"></div>
+                        <span class="description">
+                            Análisis de ganancia de peso por lote o individual.
+                        </span>
+                    </div>
+                </a>
             </div>
         </div>
     </div>

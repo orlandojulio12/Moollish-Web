@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd \"C:\\\\Users\\\\Usuario\\\\Documents\\\\GitHub\\\\Moollish-Web\" && php artisan route:list --name=reportes.preneces --name=reportes.gananciaPeso 2>&1 | head -30)",
+      "Bash(cd \"C:\\\\Users\\\\Usuario\\\\Documents\\\\GitHub\\\\Moollish-Web\" && php artisan route:list 2>&1 | grep preneces)",
+      "Bash(cd \"C:\\\\Users\\\\Usuario\\\\Documents\\\\GitHub\\\\Moollish-Web\" && php artisan config:clear 2>&1 && php -l app/Http/Controllers/HistorialAnimalController.php && php -l app/Exports/PrenecesExport.php && php -l app/Exports/GananciaPesoExport.php)",
+      "Bash(cd \"C:\\\\Users\\\\Usuario\\\\Documents\\\\GitHub\\\\Moollish-Web\" && php artisan route:list 2>&1 | grep \"animales-por-predio\\\\|ganancia-peso\")",
+      "Bash(cd \"C:\\\\Users\\\\Usuario\\\\Documents\\\\GitHub\\\\Moollish-Web\" && php -l app/Exports/GananciaPesoExport.php)"
+    ]
+  }
+}

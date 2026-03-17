@@ -3,9 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\Animal;
+use App\Models\Predios;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\PrenecesExport;
+use App\Exports\GananciaPesoExport;
+
 class HistorialAnimalController extends Controller
 {
     /**
@@ -969,5 +975,81 @@ class HistorialAnimalController extends Controller
                 'fecha_desde'               => $fechaDesde,
             ],
         ]);
+    }
+
+    // =========================================================================
+    // VISTAS WEB
+    // =========================================================================
+
+    public function animalesPorPredio(Request $request)
+    {
+        $request->validate(['predio_id' => 'required|integer']);
+
+        $animales = DB::table('animales')
+            ->leftJoin('lotes', 'animales.lote_id', '=', 'lotes.id')
+            ->where('animales.id_predio', $request->predio_id)
+            ->where('animales.estado_vida', 1)
+            ->orderBy('animales.codigo')
+            ->select(
+                'animales.id_animal',
+                'animales.codigo',
+                'animales.nombre',
+                'animales.raza',
+                'animales.sexo',
+                'lotes.nombre as lote_nombre'
+            )
+            ->get();
+
+        return response()->json(['animales' => $animales]);
+    }
+
+    public function prenecesView()
+    {
+        $user   = Auth::user();
+        $predios = $user->role->name === 'admin'
+            ? Predios::with('lotes')->get()
+            : $user->predios()->with('lotes')->get();
+
+        return view('reportes.preneces', compact('predios'));
+    }
+
+    public function gananciaPesoView()
+    {
+        $user   = Auth::user();
+        $predios = $user->role->name === 'admin'
+            ? Predios::with('lotes')->get()
+            : $user->predios()->with('lotes')->get();
+
+        return view('reportes.ganancia-peso', compact('predios'));
+    }
+
+    public function prenecesExport(Request $request)
+    {
+        $response = $this->preneces($request);
+        $data     = $response->getData(true);
+
+        if (!$data['success']) {
+            return back()->with('error', 'Error al generar la exportación');
+        }
+
+        return Excel::download(
+            new PrenecesExport(collect($data['data'])),
+            'preneces_' . now()->format('Y-m-d') . '.xlsx'
+        );
+    }
+
+    public function gananciaPesoExport(Request $request)
+    {
+        $response = $this->gananciaPeso($request);
+        $data     = $response->getData(true);
+
+        if (!$data['success']) {
+            return back()->with('error', 'Error al generar la exportación');
+        }
+
+        return Excel::download(
+            new GananciaPesoExport($data),
+            'ganancia_peso_' . now()->format('Y-m-d') . '.xlsx'
+        );
     }
 }

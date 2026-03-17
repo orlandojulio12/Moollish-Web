@@ -63,6 +63,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\ProductivosController;
 use App\Http\Controllers\ReproductivosController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\HistorialAnimalController;
 
 
 
@@ -433,6 +434,13 @@ Route::middleware([
 
     //reportes
     Route::get('/Reportes/index', [ReportesController::class, 'index'])->name('Reportes.index');
+
+    // Reportes: Preñeces y Ganancia de Peso (web)
+    Route::get('/reportes/preneces',             [HistorialAnimalController::class, 'prenecesView'])->name('reportes.preneces');
+    Route::get('/reportes/preneces/export',      [HistorialAnimalController::class, 'prenecesExport'])->name('reportes.preneces.export');
+    Route::get('/reportes/ganancia-peso',        [HistorialAnimalController::class, 'gananciaPesoView'])->name('reportes.gananciaPeso');
+    Route::get('/reportes/ganancia-peso/export', [HistorialAnimalController::class, 'gananciaPesoExport'])->name('reportes.gananciaPeso.export');
+    Route::get('/reportes/animales-por-predio',  [HistorialAnimalController::class, 'animalesPorPredio'])->name('reportes.animalesPorPredio');
 
     //proyeccion de partos
     Route::get('/ProyeccionPartos/index', [PartosController::class, 'proyeccionParto'])->name('proyeccionParto.index');
