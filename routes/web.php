@@ -85,7 +85,7 @@ Route::post('/resend-verification-email', [RegisterController::class, 'resendVer
     ->name('verification.resend');
 
 // Ruta para la página de confirmación de correo electrónico
-Route::get('/email-confirmation', function() {
+Route::get('/email-confirmation', function () {
     return view('inicio.confirmEmail');
 })->name('email.confirmation');
 
@@ -108,7 +108,7 @@ Route::middleware([
     '\App\Http\Middleware\PreventBackHistory::class',
     config('jetstream.auth_session'),
     'verified',
-      'active.membership'
+    'active.membership'
 ])->group(function () {
 
     Route::resource('roles', RoleController::class);
@@ -136,7 +136,7 @@ Route::middleware([
     Route::get('predios/{id}/caracterizar', [PrediosController::class, 'caracterizar'])->name('predios.caracterizar');
     Route::post('predios/{id}/caracterizar', [PrediosController::class, 'storeCaracterizacion'])->name('predios.storeCaracterizacion');
     Route::put('predios/{id}/actualizar-caracterizacion', [PrediosController::class, 'updatadeCaracterizacion'])->name('predios.updatadeCaracterizacion');
-    
+
     //exporte de Excel predios
     // Route::get('ExportePredio', [exportePredioController::class, 'show'])->name('ExportePredio');
     // Route::get('/export-informacion-del-predio', [exportePredioController::class, 'exportarInformacionDelPredio'])->name('exportarInformacionDelPredio');
@@ -144,77 +144,77 @@ Route::middleware([
     // Route::get('/export-riesgo-epidemiologico', [exportePredioController::class, 'exportRiesgoEpidemiologico'])->name('export.riesgo.epidemiologico');
     // Route::get('export/servicios-ambientales', [exportePredioController::class, 'exportServiciosAmbientales'])->name('exportServiciosAmbientales');
     // Route::get('export/censo', [exportePredioController::class, 'exportCenso'])->name('exportCenso');
-    
+
     // Agrupar las rutas de exportación con middleware para solo admin (rol 1)
- Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::get('ExportePredio', [exportePredioController::class, 'show'])->name('ExportePredio');
-    Route::get('/buscar-predios', [exportePredioController::class, 'buscarPredios'])->name('buscarPredios'); 
-   Route::get('/export-informacion-del-predio', [exportePredioController::class, 'exportarInformacionDelPredio'])->name('exportarInformacionDelPredio');
-   Route::get('/export-Bgp', [exportePredioController::class, 'exportBgp'])->name('exportBgp');
-    Route::get('/export-riesgo-epidemiologico', [exportePredioController::class, 'exportRiesgoEpidemiologico'])->name('export.riesgo.epidemiologico');
-    Route::get('export/servicios-ambientales', [exportePredioController::class, 'exportServiciosAmbientales'])->name('exportServiciosAmbientales');
-    Route::get('export/censo', [exportePredioController::class, 'exportCenso'])->name('exportCenso');
- });
- 
-
- // Dashboards
-Route::middleware(['auth','role:admin'])->group(function () {
-
-
-// Vista principal de Dashboards
-    Route::get('/dashboards-caractreizacion', [DashboardController::class, 'index'])->name('dashboards.index');
-
-     // Dashboards CENSO
-     // Vista de navegación de Dashboards Censo
-    Route::get('/dashboards/censo', [DashboardController::class, 'censoDashboardsIndex'])->name('dashboards.censo.index');
-    Route::get('/dashboard/censo-bovinos', [DashboardController::class, 'censoBovinos'])->name('dashboard.censo.bovinos');
-    Route::get('/dashboard/censo-bufalinos', [DashboardController::class, 'censoBuffalinos'])->name('dashboard.censo.bufalinos');
-    Route::get('/dashboard/censo-porcinos', [DashboardController::class, 'censoPorcinos'])->name('dashboard.censo.porcinos');
-    Route::get('/dashboard/censo-equidos', [DashboardController::class, 'censoEquidos'])->name('dashboard.censo.equidos');
-    Route::get('/dashboard/censo-aves-comerciales', [DashboardController::class, 'censoAvesComerciales'])->name('dashboard.censo.aves.comerciales');
-    Route::get('/dashboard/censo-aves-traspatio', [DashboardController::class, 'censoAvesTraspatio'])->name('dashboard.censo.aves.traspatio');
-    Route::get('/dashboard/censo-ovino-caprino', [DashboardController::class, 'censoOvinoCaprino'])->name('dashboard.censo.ovino.caprino');
-    Route::get('/dashboard/censo-peces', [DashboardController::class, 'censoPeces'])->name('dashboard.censo.peces');
-    Route::get('/dashboard/censo-crustaceos', [DashboardController::class, 'censoCrustaceos'])->name('dashboard.censo.crustaceos');
-    Route::get('/dashboard/censo-consolidado', [DashboardController::class, 'censoConsolidado'])->name('dashboard.censo.consolidado');
-    // DASHBOARDS  CENSO COMPARATIVOS
-
-    Route::get('/dashboard/comparativo/bovinos', [DashboardController::class, 'comparativoBovinos'])->name('dashboard.comparativo.bovinos');
-    Route::get('/dashboard/comparativo/bufalinos', [DashboardController::class, 'comparativoBuffalinos'])->name('dashboard.comparativo.bufalinos');
-    Route::get('/dashboard/comparativo/porcinos', [DashboardController::class, 'comparativoPorcinos'])->name('dashboard.comparativo.porcinos');
-    Route::get('/dashboard/comparativo/equidos', [DashboardController::class, 'comparativoEquidos'])->name('dashboard.comparativo.equidos');
-    Route::get('/dashboard/comparativo/ovino-caprino', [DashboardController::class, 'comparativoOvinoCaprino'])->name('dashboard.comparativo.ovino.caprino');
-    Route::get('/dashboard/comparativo/peces', [DashboardController::class, 'comparativoPeces'])->name('dashboard.comparativo.peces');
-
-    // DASHBOARDS CENSO  INDIVIDUALES
-    Route::get('/dashboard/individual/bovinos', [DashboardController::class, 'individualBovinos'])->name('dashboard.individual.bovinos');
-    Route::get('/dashboard/individual/bufalinos', [DashboardController::class, 'individualBuffalinos'])->name('dashboard.individual.bufalinos');
-    Route::get('/dashboard/individual/porcinos', [DashboardController::class, 'individualPorcinos'])->name('dashboard.individual.porcinos');
-    Route::get('/dashboard/individual/equidos', [DashboardController::class, 'individualEquidos'])->name('dashboard.individual.equidos');
-    Route::get('/dashboard/individual/ovino-caprino', [DashboardController::class, 'individualOvinoCaprino'])->name('dashboard.individual.ovino.caprino');
-    Route::get('/dashboard/individual/peces', [DashboardController::class, 'individualPeces'])->name('dashboard.individual.peces');
-
-      // INFORMACIÓN DE PREDIOS
-    Route::get('/dashboard/info-predios-consolidado', [DashboardController::class, 'infoPrediosConsolidado'])->name('dashboard.info.predios.consolidado');
-    Route::get('/dashboard/info-predios-individual', [DashboardController::class, 'infoPrediosIndividual'])->name('dashboard.info.predios.individual');
-
-    // BPG
-    Route::get('/dashboard/bgp-consolidado', [DashboardController::class, 'bgpConsolidado'])->name('dashboard.bgp.consolidado');
-    Route::get('/dashboard/bgp-individual', [DashboardController::class, 'bgpIndividual'])->name('dashboard.bgp.individual');
-
-    // Riesgo Epidemiológico
-    Route::get('/dashboard/riesgo-epidemiologico-consolidado', [DashboardController::class, 'riesgoEpidemiologicoConsolidado'])->name('dashboard.riesgo.epidemiologico.consolidado');
-    Route::get('/dashboard/riesgo-epidemiologico-individual', [DashboardController::class, 'riesgoEpidemiologicoIndividual'])->name('dashboard.riesgo.epidemiologico.individual');
-    
-    // Servicios Ambientales
-    Route::get('/dashboard/servicios-ambientales-consolidado', [DashboardController::class, 'serviciosAmbientalesConsolidado'])->name('dashboard.servicios.ambientales.consolidado');
-    Route::get('/dashboard/servicios-ambientales-individual', [DashboardController::class, 'serviciosAmbientalesIndividual'])->name('dashboard.servicios.ambientales.individual');
-    
-    // Dashboard Análisis Comparativo
-    Route::get('/dashboard/analisis-comparativo', [DashboardController::class, 'analisisComparativo'])->name('dashboard.analisis.comparativo');
+    Route::middleware(['auth', 'role:admin'])->group(function () {
+        Route::get('ExportePredio', [exportePredioController::class, 'show'])->name('ExportePredio');
+        Route::get('/buscar-predios', [exportePredioController::class, 'buscarPredios'])->name('buscarPredios');
+        Route::get('/export-informacion-del-predio', [exportePredioController::class, 'exportarInformacionDelPredio'])->name('exportarInformacionDelPredio');
+        Route::get('/export-Bgp', [exportePredioController::class, 'exportBgp'])->name('exportBgp');
+        Route::get('/export-riesgo-epidemiologico', [exportePredioController::class, 'exportRiesgoEpidemiologico'])->name('export.riesgo.epidemiologico');
+        Route::get('export/servicios-ambientales', [exportePredioController::class, 'exportServiciosAmbientales'])->name('exportServiciosAmbientales');
+        Route::get('export/censo', [exportePredioController::class, 'exportCenso'])->name('exportCenso');
     });
 
-    
+
+    // Dashboards
+    Route::middleware(['auth', 'role:admin'])->group(function () {
+
+
+        // Vista principal de Dashboards
+        Route::get('/dashboards-caractreizacion', [DashboardController::class, 'index'])->name('dashboards.index');
+
+        // Dashboards CENSO
+        // Vista de navegación de Dashboards Censo
+        Route::get('/dashboards/censo', [DashboardController::class, 'censoDashboardsIndex'])->name('dashboards.censo.index');
+        Route::get('/dashboard/censo-bovinos', [DashboardController::class, 'censoBovinos'])->name('dashboard.censo.bovinos');
+        Route::get('/dashboard/censo-bufalinos', [DashboardController::class, 'censoBuffalinos'])->name('dashboard.censo.bufalinos');
+        Route::get('/dashboard/censo-porcinos', [DashboardController::class, 'censoPorcinos'])->name('dashboard.censo.porcinos');
+        Route::get('/dashboard/censo-equidos', [DashboardController::class, 'censoEquidos'])->name('dashboard.censo.equidos');
+        Route::get('/dashboard/censo-aves-comerciales', [DashboardController::class, 'censoAvesComerciales'])->name('dashboard.censo.aves.comerciales');
+        Route::get('/dashboard/censo-aves-traspatio', [DashboardController::class, 'censoAvesTraspatio'])->name('dashboard.censo.aves.traspatio');
+        Route::get('/dashboard/censo-ovino-caprino', [DashboardController::class, 'censoOvinoCaprino'])->name('dashboard.censo.ovino.caprino');
+        Route::get('/dashboard/censo-peces', [DashboardController::class, 'censoPeces'])->name('dashboard.censo.peces');
+        Route::get('/dashboard/censo-crustaceos', [DashboardController::class, 'censoCrustaceos'])->name('dashboard.censo.crustaceos');
+        Route::get('/dashboard/censo-consolidado', [DashboardController::class, 'censoConsolidado'])->name('dashboard.censo.consolidado');
+        // DASHBOARDS  CENSO COMPARATIVOS
+
+        Route::get('/dashboard/comparativo/bovinos', [DashboardController::class, 'comparativoBovinos'])->name('dashboard.comparativo.bovinos');
+        Route::get('/dashboard/comparativo/bufalinos', [DashboardController::class, 'comparativoBuffalinos'])->name('dashboard.comparativo.bufalinos');
+        Route::get('/dashboard/comparativo/porcinos', [DashboardController::class, 'comparativoPorcinos'])->name('dashboard.comparativo.porcinos');
+        Route::get('/dashboard/comparativo/equidos', [DashboardController::class, 'comparativoEquidos'])->name('dashboard.comparativo.equidos');
+        Route::get('/dashboard/comparativo/ovino-caprino', [DashboardController::class, 'comparativoOvinoCaprino'])->name('dashboard.comparativo.ovino.caprino');
+        Route::get('/dashboard/comparativo/peces', [DashboardController::class, 'comparativoPeces'])->name('dashboard.comparativo.peces');
+
+        // DASHBOARDS CENSO  INDIVIDUALES
+        Route::get('/dashboard/individual/bovinos', [DashboardController::class, 'individualBovinos'])->name('dashboard.individual.bovinos');
+        Route::get('/dashboard/individual/bufalinos', [DashboardController::class, 'individualBuffalinos'])->name('dashboard.individual.bufalinos');
+        Route::get('/dashboard/individual/porcinos', [DashboardController::class, 'individualPorcinos'])->name('dashboard.individual.porcinos');
+        Route::get('/dashboard/individual/equidos', [DashboardController::class, 'individualEquidos'])->name('dashboard.individual.equidos');
+        Route::get('/dashboard/individual/ovino-caprino', [DashboardController::class, 'individualOvinoCaprino'])->name('dashboard.individual.ovino.caprino');
+        Route::get('/dashboard/individual/peces', [DashboardController::class, 'individualPeces'])->name('dashboard.individual.peces');
+
+        // INFORMACIÓN DE PREDIOS
+        Route::get('/dashboard/info-predios-consolidado', [DashboardController::class, 'infoPrediosConsolidado'])->name('dashboard.info.predios.consolidado');
+        Route::get('/dashboard/info-predios-individual', [DashboardController::class, 'infoPrediosIndividual'])->name('dashboard.info.predios.individual');
+
+        // BPG
+        Route::get('/dashboard/bgp-consolidado', [DashboardController::class, 'bgpConsolidado'])->name('dashboard.bgp.consolidado');
+        Route::get('/dashboard/bgp-individual', [DashboardController::class, 'bgpIndividual'])->name('dashboard.bgp.individual');
+
+        // Riesgo Epidemiológico
+        Route::get('/dashboard/riesgo-epidemiologico-consolidado', [DashboardController::class, 'riesgoEpidemiologicoConsolidado'])->name('dashboard.riesgo.epidemiologico.consolidado');
+        Route::get('/dashboard/riesgo-epidemiologico-individual', [DashboardController::class, 'riesgoEpidemiologicoIndividual'])->name('dashboard.riesgo.epidemiologico.individual');
+
+        // Servicios Ambientales
+        Route::get('/dashboard/servicios-ambientales-consolidado', [DashboardController::class, 'serviciosAmbientalesConsolidado'])->name('dashboard.servicios.ambientales.consolidado');
+        Route::get('/dashboard/servicios-ambientales-individual', [DashboardController::class, 'serviciosAmbientalesIndividual'])->name('dashboard.servicios.ambientales.individual');
+
+        // Dashboard Análisis Comparativo
+        Route::get('/dashboard/analisis-comparativo', [DashboardController::class, 'analisisComparativo'])->name('dashboard.analisis.comparativo');
+    });
+
+
     Route::get('Seccion2/{id}', [PrediosController::class, 'showSeccion2'])->name('Seccion2');
 
     //asignacion de predios
@@ -407,7 +407,7 @@ Route::middleware(['auth','role:admin'])->group(function () {
     Route::get('/partos/get-partos-vaca', [PartosController::class, 'getPartosByVaca'])->name('partos.getPartosByVaca');
     Route::get('/partos/get-partos-fecha', [PartosController::class, 'getPartosByFecha'])->name('partos.getPartosByFecha');
     Route::get('/partos/buscar', [PartosController::class, 'buscarPartos'])->name('partos.buscar');
-    
+
     //Monta natural
     Route::get('/MontaNatural', [MontaNaturalController::class, 'index'])->name('MontaNatural.index');
     Route::resource('monta_natural', MontaNaturalController::class)->only(['index', 'store']);
@@ -419,18 +419,18 @@ Route::middleware(['auth','role:admin'])->group(function () {
     Route::post('/Palpaciones/store', [PalpacionesController::class, 'store'])->name('palpaciones.store');
     Route::get('/palpaciones/template', [PalpacionesController::class, 'downloadTemplate'])->name('palpaciones.template');
     Route::post('/palpaciones/import', [PalpacionesController::class, 'import'])->name('palpaciones.import');
-   
+
     //Muerte Animal
     Route::get('/Muerte/index', [MuerteAnimalController::class, 'index'])->name('MuerteAnimal.index');
     Route::post('/Muerte/store', [MuerteAnimalController::class, 'store'])->name('muerte.store');
-    
+
     // Venta Animal
     Route::get('/Venta/index', [VentaAnimalController::class, 'index'])->name('VentaAnimal.index');
     Route::post('/Venta/store', [VentaAnimalController::class, 'store'])->name('VentaAnimal.store');
-    
+
     //veterinario
     Route::get('/Veterinarios/index', [VeterinarioController::class, 'index'])->name('Veterinarios.index');
-    
+
     //reportes
     Route::get('/Reportes/index', [ReportesController::class, 'index'])->name('Reportes.index');
 
@@ -442,66 +442,66 @@ Route::middleware(['auth','role:admin'])->group(function () {
     Route::post('/inventarioFisico/store', [AnimalesController::class, 'storeInventario'])->name('inventarioFisico.store');
 
     // Listados Productivos
-Route::prefix('productivos')
-    ->middleware('auth')
-    ->group(function () {
+    Route::prefix('productivos')
+        ->middleware('auth')
+        ->group(function () {
 
-        // Dashboard Productivos (selector de predio + contadores)
-        Route::get('/', [ProductivosController::class, 'index'])
-            ->name('productivos.index');
+            // Dashboard Productivos (selector de predio + contadores)
+            Route::get('/', [ProductivosController::class, 'index'])
+                ->name('productivos.index');
 
-        // CRÍAS
-        Route::get('/crias', [ProductivosController::class, 'crias'])
-            ->name('productivos.crias');
+            // CRÍAS
+            Route::get('/crias', [ProductivosController::class, 'crias'])
+                ->name('productivos.crias');
 
-        // LEVANTES
-        Route::get('/levantes/machos', [ProductivosController::class, 'levantesMachos'])
-            ->name('productivos.levantes.machos');
+            // LEVANTES
+            Route::get('/levantes/machos', [ProductivosController::class, 'levantesMachos'])
+                ->name('productivos.levantes.machos');
 
-        Route::get('/levantes/hembras', [ProductivosController::class, 'levantesHembras'])
-            ->name('productivos.levantes.hembras');
+            Route::get('/levantes/hembras', [ProductivosController::class, 'levantesHembras'])
+                ->name('productivos.levantes.hembras');
 
-        // NOVILLAS DE VIENTRE
-        Route::get('/novillas-vientre', [ProductivosController::class, 'novillasVientre'])
-            ->name('productivos.novillas.vientre');
+            // NOVILLAS DE VIENTRE
+            Route::get('/novillas-vientre', [ProductivosController::class, 'novillasVientre'])
+                ->name('productivos.novillas.vientre');
 
-        // TOROS
-        Route::get('/toros', [ProductivosController::class, 'toros'])
-            ->name('productivos.toros');
+            // TOROS
+            Route::get('/toros', [ProductivosController::class, 'toros'])
+                ->name('productivos.toros');
 
-        // TORETES DE CEBA
-        Route::get('/toretes-ceba', [ProductivosController::class, 'toretesCeba'])
-            ->name('productivos.toretes.ceba');
+            // TORETES DE CEBA
+            Route::get('/toretes-ceba', [ProductivosController::class, 'toretesCeba'])
+                ->name('productivos.toretes.ceba');
 
-        // VACAS PARIDAS
-        Route::get('/vacas-paridas', [ProductivosController::class, 'vacasParidas'])
-            ->name('productivos.vacas.paridas');
+            // VACAS PARIDAS
+            Route::get('/vacas-paridas', [ProductivosController::class, 'vacasParidas'])
+                ->name('productivos.vacas.paridas');
 
-        // VACAS SECAS
-        Route::get('/vacas-secas', [ProductivosController::class, 'vacasSecas'])
-            ->name('productivos.vacas.secas');
+            // VACAS SECAS
+            Route::get('/vacas-secas', [ProductivosController::class, 'vacasSecas'])
+                ->name('productivos.vacas.secas');
 
-        Route::get('/animal/{id}', [ProductivosController::class, 'detalleAnimal'])
-            ->name('productivos.detalle');
-    });
+            Route::get('/animal/{id}', [ProductivosController::class, 'detalleAnimal'])
+                ->name('productivos.detalle');
+        });
 
     // Listados Reproductivos
     Route::prefix('reproductivos')
-    ->middleware('auth')
-    ->group(function () {
+        ->middleware('auth')
+        ->group(function () {
 
-        Route::get('/', [ReproductivosController::class, 'index'])
-            ->name('reproductivos.index');
+            Route::get('/', [ReproductivosController::class, 'index'])
+                ->name('reproductivos.index');
 
-        Route::get('/vacias', [ReproductivosController::class, 'vacias'])
-            ->name('reproductivos.vacias');
+            Route::get('/vacias', [ReproductivosController::class, 'vacias'])
+                ->name('reproductivos.vacias');
 
-        Route::get('/prenadas', [ReproductivosController::class, 'prenadas'])
-            ->name('reproductivos.prenadas');
+            Route::get('/prenadas', [ReproductivosController::class, 'prenadas'])
+                ->name('reproductivos.prenadas');
 
-        Route::get('/animal/{id}', [ReproductivosController::class, 'detalleAnimal'])
-            ->name('reproductivos.detalle');
-    });
+            Route::get('/animal/{id}', [ReproductivosController::class, 'detalleAnimal'])
+                ->name('reproductivos.detalle');
+        });
 
 
 
@@ -516,13 +516,39 @@ Route::prefix('productivos')
     Route::post('/parametro/guardar', [PrediosController::class, 'storeParametros'])->name('parametros.guardar');
 
     //traslado
+    Route::get('/traslado/masivo', [UbicacionController::class, 'trasladoMasivoIndex'])
+        ->name('traslado.masivo.index');
 
-    Route::get('/reportes/traslados', [UbicacionController::class, 'reporteTrasladosListado'])
+    Route::post('/traslado/masivo/ejecutar', [UbicacionController::class, 'trasladoMasivoStore'])
+        ->name('traslado.masivo.store');
+
+    Route::get('/traslado/masivo/preview', [UbicacionController::class, 'trasladoMasivoPreview'])
+        ->name('traslado.masivo.preview');
+// viejos
+    Route::middleware(['auth', 'verified'])->group(function () {
+
+    // Listado principal del reporte
+    Route::get('/reportes/traslados',
+        [UbicacionController::class, 'reporteTrasladosListado'])
         ->name('reportes.traslados.listado');
+
+    // AJAX: detalle de un movimiento individual
+    Route::get('/reportes/traslados/detalle/{id}',
+        [UbicacionController::class, 'reporteTrasladoDetalle'])
+        ->name('reportes.traslados.detalle');
+
+    // AJAX: historial completo de traslados de UN animal
+    // (usado desde el botón "Traslados" en otras vistas)
+    Route::get('/reportes/traslados/animal',
+        [UbicacionController::class, 'reporteMovimientosPorAnimal'])
+        ->name('reportes.traslados.movimientosPorAnimal');
+
+});
 
     // Ruta para obtener los movimientos de un animal vía AJAX
     Route::get('/reportes/traslados/movimientos-por-animal', [UbicacionController::class, 'movimientosPorAnimal'])
         ->name('reportes.traslados.movimientosPorAnimal');
+
 
     //inventario
 
@@ -656,8 +682,8 @@ Route::middleware('auth')->get('/web/predios', function (Request $request) {
         } else {
             // Si no hay relación directa, buscar por user_id
             $predios = Predios::where('user_id', $user->id)
-                        ->orWhere('creado_por', $user->id)
-                        ->get();
+                ->orWhere('creado_por', $user->id)
+                ->get();
         }
 
         return response()->json([

@@ -14,7 +14,11 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\HistorialAnimalController;
+use App\Http\Controllers\UbicacionController;
 
+      Route::post('/animals/delete/request-code', [UserController::class, 'requestDeleteAnimalCode']);
+    Route::post('/animals/delete/confirm', [UserController::class, 'confirmDeleteAnimal']);
+    
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -27,11 +31,25 @@ Route::prefix('/animales')->group(function () {
     
     // Buscar animales por código (identificacion_oficial), nombre o chip (identificacion_electronica)
     Route::get('/buscar', [HistorialAnimalController::class, 'buscarAnimales']);
-    
+
     // Obtener historial completo de un animal
     Route::post('/historial', [HistorialAnimalController::class, 'obtenerHistorialCompleto']);
     
 });
+// hoy
+Route::get('/reportes/preneces',      [HistorialAnimalController::class, 'preneces']);
+Route::get('/reportes/ganancia-peso', [HistorialAnimalController::class, 'gananciaPeso']);
+
+// Traslado masivo
+Route::get('/traslado/masivo/datos',     [UbicacionController::class, 'trasladoMasivoData']);       // ya existía, sin cambio
+Route::get('/traslado/masivo/preview',   [UbicacionController::class, 'apiTrasladoMasivoPreview']); // ← nuevo método
+Route::post('/traslado/masivo/ejecutar', [UbicacionController::class, 'apiTrasladoMasivoStore']);   // ← nuevo método
+
+// Reporte traslados
+Route::get('/reportes/traslados',              [UbicacionController::class, 'reporteTrasladosListado']);
+Route::get('/reportes/traslados/detalle/{id}', [UbicacionController::class, 'reporteTrasladoDetalle']);
+Route::get('/reportes/traslados/animal',       [UbicacionController::class, 'reporteMovimientosPorAnimal']);
+
 
 Route::post('/login', [AuthenticatedSessionController::class, 'store']);
 Route::post('/forgot-password', [ForgotPasswordController::class, 'apiSendResetLinkEmail']);
