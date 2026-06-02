@@ -1,569 +1,602 @@
-<!DOCTYPE html>
-<html lang="en">
+@extends('layouts.landing')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Contáctanos | Moollish</title>
-    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
-    <link rel="shortcut icon" href="{{ asset('assets/images/logo4.png') }}" />
-    <style>
-        /* Estilo para el contenedor del spinner */
-        #loader-wrapper {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            /* 100% del ancho de la ventana */
-            height: 100vh;
-            /* 100% de la altura de la ventana */
-            background: rgb(255, 255, 255);
-            /* Fondo semi-transparente blanco */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-            /* Asegura que esté sobre otros elementos */
-        }
-    
-        /* Animación de respiración */
-        @keyframes respiracion {
-            0% {
-                transform: scale(0.9);
-            }
-    
-            50% {
-                transform: scale(1.0);
-            }
-    
-            100% {
-                transform: scale(0.9);
-            }
-        }
-    
-        /* Aplicar la animación a la imagen de precarga */
-        #loader-wrapper img {
-            width: 200px;
-            /* Ancho de la imagen */
-            animation: respiracion 2s ease-in-out infinite;
-        }
-    </style>
-       
-    <style>
-     @font-face {
-        font-family: 'Garet';
-        src: url('path-to-your-font/Garet-Regular.woff2') format('woff2'),
-            url('path-to-your-font/Garet-Regular.woff') format('woff'),
-            url('path-to-your-font/Garet-Regular.ttf') format('truetype');
-        font-weight: normal;
-        font-style: normal;
-    }
-        :root {
-    --primary-color: #010712;
-    --secondary-color: #818386;
-    --bg-color: #FCFDFD;
-    --button-color: #3B3636;
-    --h1-color: #3F444C;
-}
+@section('title', 'Contacto | Moollish')
 
-[data-theme="dark"] {
-    --primary-color: #FCFDFD;
-    --secondary-color: #818386;
-    --bg-color: #010712;
-    --button-color: #818386;
-    --h1-color: #FCFDFD;
-}
-
-* {
-    margin: 0;
-    box-sizing: border-box;
-    transition: all 0.3s ease-in-out;
-}
-
-.contact-container {
-    display: flex;
-    width: 100vw;
-    height: 100vh;
-    background: var(--bg-color);
-}
-.primary-menu .menu-area ul.main-menu li a.active, .primary-menu .menu-area ul.main-menu li a:hover {
-    color: #e49b39 !important;
-}
-
-.left-col {
-    width: 45vw;
-    height: 100%;
-    background-image: url("/assets/images/contactanos correguida4.png");
-    background-size: cover;
-    background-repeat: no-repeat;
-}
-
-.logo {
-    width: 10rem;
-    padding: 1.5rem;
-}
-
-.right-col {
-    background: var(--bg-color);
-    width: 50vw;
-    height: 100vh;
-    padding: 5rem 3.5rem;
-}
-
-.contact-title,
-.contact-label,
-.contact-button,
-.description {
-    font-family: 'Anton';
-    font-weight: 400;
-    letter-spacing: 0.1rem;
-}
-
-.contact-title {
-    color: var(--h1-color);
-    text-transform: uppercase;
-    font-size: 2.5rem;
-    letter-spacing: 0.5rem;
-    font-weight: 300;
-}
-
-.contact-description {
-    color: var(--secondary-color);
-    font-size: 0.9rem;
-    letter-spacing: 0.01rem;
-    width: 40vw;
-    margin: 0.25rem 0;
-}
-
-.contact-label,
-.description {
-    color: var(--secondary-color);
-    text-transform: uppercase;
-    font-size: 0.625rem;
-}
-
-.contact-form {
-    width: 31.25rem;
-    position: relative;
-    margin-top: 2rem;
-    padding: 1rem 0;
-}
-
-.contact-input,
-.contact-textarea,
-.contact-label {
-    width: 40vw;
-    display: block;
-}
-
-.contact-input::placeholder,
-.contact-textarea::placeholder {
-    color: var(--primary-color);
-}
-
-.contact-input,
-.contact-textarea {
-    color: var(--primary-color) !important;
-    font-weight: 500 !important;
-    background: var(--bg-color) !important;
-    border: none !important;
-    border-bottom: 1px solid var(--secondary-color) !important;
-    padding: 0.5rem 0 !important;
-    margin-bottom: 1rem !important;
-    outline: none !important;
-}
-
-.contact-textarea {
-    resize: none;
-}
-
-.contact-button {
-    text-transform: uppercase;
-    font-weight: 300;
-    background: var(--button-color);
-    color: var(--bg-color);
-    width: 10rem;
-    /* height: 2.25rem; */
-    border: none;
-    border-radius: 2px;
-    outline: none;
-    cursor: pointer;
-}
-
-.contact-input:hover,
-.contact-textarea:hover,
-.contact-button:hover {
-    opacity: 0.5;
-}
-
-.contact-button:active {
-    opacity: 0.8;
-}
-
-#success-msg,
-#contact-error {
-    width: 40vw;
-    margin: 0.125rem 0;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    font-family: 'Garet';
-    color: var(--secondary-color);
-}
-
-#success-msg {
-    transition-delay: 3s;
-}
-
-/* Toggle Switch */
-.theme-switch-wrapper {
-    display: flex;
-    align-items: center;
-    text-align: center;
-    width: 160px;
-    position: absolute;
-    top: 0.5rem;
-    right: 0;
-}
-
-.description {
-    margin-left: 1.25rem;
-}
-
-.theme-switch {
-    display: inline-block;
-    height: 34px;
-    position: relative;
-    width: 60px;
-}
-
-.theme-switch input {
-    display: none;
-}
-
-.slider {
-    background-color: #ccc;
-    bottom: 0;
-    cursor: pointer;
-    left: 0;
-    position: absolute;
-    right: 0;
-    top: 0;
-    transition: .4s;
-}
-
-.slider:before {
-    background-color: #fff;
-    bottom: 0.25rem;
-    content: "";
-    width: 26px;
-    height: 26px;
-    left: 0.25rem;
-    position: absolute;
-    transition: .4s;
-}
-
-input:checked + .slider {
-    background-color: var(--button-color);
-}
-
-input:checked + .slider:before {
-    transform: translateX(26px);
-}
-
-.slider.round {
-    border-radius: 34px;
-}
-
-.slider.round:before {
-    border-radius: 50%;
-}
-
-@media only screen and (max-width: 950px) {
-    .logo {
-        width: 8rem;
+@push('styles')
+<style>
+    /* ── Scroll fix ──────────────────────────────────────────── */
+    html, body {
+        overflow-x: hidden;
+        overflow-y: auto !important;
+        height: auto !important;
+        min-height: 100vh;
     }
 
-    .contact-title {
-        font-size: 1.75rem;
+    /* ── Hero banner ─────────────────────────────────────────── */
+    .contact-hero {
+        background: linear-gradient(135deg, #1a0800 0%, #3d1800 45%, #7a3d00 75%, #c47a0a 100%);
+        padding: 90px 0 72px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
     }
 
-    .contact-description {
-        font-size: 0.7rem;
-    }
-
-    .contact-input,
-    .contact-textarea,
-    .contact-button {
-        font-size: 0.65rem;
-    }
-
-    .description {
-        font-size: 0.3rem;
-        margin-left: 0.4rem;
-    }
-
-    .contact-button {
-        width: 7rem;
-    }
-
-    .theme-switch-wrapper {
-        width: 120px;
-    }
-
-    .theme-switch {
-        height: 28px;
-        width: 50px;
-    }
-
-    .theme-switch input {
-        display: none;
-    }
-
-    .slider:before {
-        background-color: #fff;
-        bottom: 0.25rem;
-        content: "";
-        width: 20px;
-        height: 20px;
-        left: 0.25rem;
+    .contact-hero::before {
+        content: '';
         position: absolute;
-        transition: .4s;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Ccircle cx='40' cy='40' r='1.5' fill='rgba(245,166,35,0.12)'/%3E%3C/svg%3E");
+        pointer-events: none;
     }
 
-    input:checked + .slider:before {
-        transform: translateX(16px);
+    .contact-hero .hero-inner {
+        position: relative;
+        z-index: 2;
     }
 
-    .slider.round {
-        border-radius: 15px;
+    .contact-hero h1 {
+        font-size: clamp(1.6rem, 4vw, 2.75rem);
+        font-weight: 800;
+        color: #fff;
+        line-height: 1.25;
+        margin-bottom: 1.1rem;
+        text-shadow: 0 3px 14px rgba(0,0,0,0.55);
     }
 
-    .slider.round:before {
+    .contact-hero h1 em {
+        font-style: normal;
+        color: #F5A623;
+    }
+
+    .contact-hero .sub-headline {
+        font-size: clamp(1rem, 2.4vw, 1.22rem);
+        color: rgba(255,255,255,0.88);
+        margin-bottom: 1.5rem;
+        max-width: 680px;
+        margin-left: auto;
+        margin-right: auto;
+        line-height: 1.65;
+    }
+
+    .contact-hero .cta-badge {
+        display: inline-block;
+        background: rgba(245,166,35,0.13);
+        border: 1.5px solid rgba(245,166,35,0.4);
+        border-radius: 50px;
+        padding: 10px 26px;
+        color: #F5A623;
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    /* ── Contact section wrapper ─────────────────────────────── */
+    .contact-section {
+        background: #f2f4f7;
+        padding: 72px 0 80px;
+    }
+
+    /* ── Form card ───────────────────────────────────────────── */
+    .contact-card {
+        background: #fff;
+        border-radius: 18px;
+        box-shadow: 0 8px 40px rgba(0,0,0,0.09);
+        padding: 42px 40px;
+    }
+
+    .contact-card h5.sub-title {
+        color: #F5A623;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        font-size: 0.8rem;
+        margin-bottom: 8px;
+    }
+
+    .contact-card h2.heading {
+        color: #2d1a00;
+        font-weight: 800;
+        font-size: clamp(1.35rem, 3vw, 1.85rem);
+        margin-bottom: 28px;
+        line-height: 1.3;
+    }
+
+    /* ── Inputs ──────────────────────────────────────────────── */
+    .contact-card .form-control {
+        border: 1.5px solid #e2e2e2;
+        border-radius: 9px;
+        padding: 12px 16px;
+        font-size: 0.95rem;
+        color: #333;
+        transition: border-color .22s, box-shadow .22s;
+        background: #fafafa;
+        width: 100%;
+    }
+
+    .contact-card .form-control:focus {
+        border-color: #F5A623;
+        box-shadow: 0 0 0 3px rgba(245,166,35,0.15);
+        background: #fff;
+        outline: none;
+    }
+
+    .contact-card .form-control.is-invalid {
+        border-color: #dc3545;
+    }
+
+    .contact-card textarea.form-control {
+        min-height: 118px;
+        resize: vertical;
+    }
+
+    /* ── Radio / Checkbox pill groups ────────────────────────── */
+    .field-group {
+        margin-bottom: 24px;
+    }
+
+    .field-group-label {
+        font-weight: 700;
+        color: #2d1a00;
+        font-size: 0.92rem;
+        display: block;
+        margin-bottom: 12px;
+        line-height: 1.4;
+    }
+
+    .option-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 9px;
+    }
+
+    .option-pill {
+        position: relative;
+    }
+
+    .option-pill input[type="radio"],
+    .option-pill input[type="checkbox"] {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .option-pill label {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 8px 18px;
+        border: 1.5px solid #e0e0e0;
+        border-radius: 50px;
+        cursor: pointer;
+        font-size: 0.88rem;
+        color: #555;
+        background: #fafafa;
+        transition: border-color .18s, background .18s, color .18s;
+        user-select: none;
+        line-height: 1.3;
+    }
+
+    .option-pill label .pill-dot {
+        width: 13px;
+        height: 13px;
+        border: 2px solid #ccc;
         border-radius: 50%;
+        flex-shrink: 0;
+        transition: background .18s, border-color .18s;
+        display: inline-block;
     }
 
-}
+    .option-pill.is-checkbox label .pill-dot {
+        border-radius: 3px;
+    }
 
-     
-    </style>
-     <link rel="shortcut icon" type="image/x-icon" href="assets/images/logo4.png">
-     <link rel="stylesheet" type="text/css" href="Landing/css/animate.css">
-     <link rel="stylesheet" type="text/css" href="Landing/css/bootstrap.min.css">
-     <link rel="stylesheet" type="text/css" href="Landing/css/all.min.css">
-     <link rel="stylesheet" type="text/css" href="Landing/css/lightcase.css">
-     <link rel="stylesheet" type="text/css" href="Landing/flaticon/flaticon.css">
-     <link rel="stylesheet" type="text/css" href="Landing/css/swiper.min.css">
-     <link rel="stylesheet" type="text/css" href="Landing/css/slick.css">
-     <link rel="stylesheet" type="text/css" href="Landing/css/slick-theme.css">
-     <link rel="stylesheet" type="text/css" href="Landing/css/style.css">
-</head>
-<div id="loader-wrapper">
-    <img src="{{asset('assets/images/logo4.png')}}" alt="Cargando..." />
-</div>
-<body>
-    
-  
-    <!-- Responsive Contact Page with Dark Mode and Form Validation (vanilla JS).
+    .option-pill input:checked + label {
+        border-color: #F5A623;
+        background: #fff8ee;
+        color: #7a3d00;
+        font-weight: 600;
+    }
 
-*Designed & built for desktop and tablets with viewport width >= 720px and in landscape orientation.  -->
- <!-- mobile-nav section start here -->
- <div class="mobile-menu">
-    <nav class="mobile-header primary-menu d-lg-none">
-        <div class="header-logo">
-            <a href="index.html" class="logo"><img src="assets/images/logo4.png" alt="logo"
-                    style="width: 80px;"></a>
+    .option-pill input:checked + label .pill-dot {
+        background: #F5A623;
+        border-color: #F5A623;
+    }
+
+    /* ── Validation feedback ─────────────────────────────────── */
+    .field-error {
+        display: block;
+        font-size: 0.82rem;
+        color: #dc3545;
+        margin-top: 7px;
+    }
+
+    /* ── Submit button ───────────────────────────────────────── */
+    .btn-demo {
+        display: block;
+        width: 100%;
+        background: linear-gradient(135deg, #F5A623, #d4820e);
+        color: #fff;
+        border: none;
+        border-radius: 50px;
+        padding: 15px 36px;
+        font-size: 1.02rem;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+        cursor: pointer;
+        transition: transform .2s ease, box-shadow .2s ease;
+        box-shadow: 0 4px 18px rgba(245,166,35,0.38);
+    }
+
+    .btn-demo:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(245,166,35,0.48);
+    }
+
+    .btn-demo:active {
+        transform: translateY(0);
+    }
+
+    /* ── Contact info sidebar ────────────────────────────────── */
+    .contact-info-card {
+        background: linear-gradient(160deg, #2d1a00 0%, #5c3400 100%);
+        border-radius: 18px;
+        padding: 42px 34px;
+        color: #fff;
+        height: 100%;
+    }
+
+    .contact-info-card h2 {
+        color: #fff;
+        font-weight: 800;
+        font-size: 1.7rem;
+        margin-bottom: 14px;
+        line-height: 1.25;
+    }
+
+    .contact-info-card h2 span {
+        color: #F5A623;
+    }
+
+    .contact-info-card > p {
+        color: rgba(255,255,255,0.78);
+        font-size: 0.93rem;
+        line-height: 1.7;
+        margin-bottom: 32px;
+    }
+
+    .contact-info-card ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .contact-info-card ul li {
+        display: flex;
+        align-items: flex-start;
+        gap: 18px;
+        margin-bottom: 28px;
+    }
+
+    .contact-info-card .ci-icon {
+        width: 48px;
+        height: 48px;
+        background: rgba(245,166,35,0.13);
+        border: 1px solid rgba(245,166,35,0.28);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        color: #F5A623;
+        font-size: 1.1rem;
+    }
+
+    .contact-info-card .ci-text h5 {
+        color: rgba(255,255,255,0.55);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .contact-info-card .ci-text a,
+    .contact-info-card .ci-text p {
+        color: #fff;
+        font-size: 0.98rem;
+        font-weight: 600;
+        text-decoration: none;
+        margin: 0;
+    }
+
+    .contact-info-card .ci-text a:hover {
+        color: #F5A623;
+    }
+
+    /* ── Success alert ───────────────────────────────────────── */
+    .success-banner {
+        background: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+        border-radius: 12px;
+        padding: 16px 22px;
+        margin-bottom: 28px;
+        font-weight: 600;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    /* ── Responsive ──────────────────────────────────────────── */
+    @media (max-width: 991px) {
+        .contact-info-card {
+            margin-top: 32px;
+            height: auto;
+        }
+    }
+
+    @media (max-width: 767px) {
+        .contact-card {
+            padding: 26px 20px;
+        }
+
+        .contact-info-card {
+            padding: 28px 20px;
+        }
+
+        .option-pills {
+            flex-direction: column;
+        }
+    }
+</style>
+@endpush
+
+@section('content')
+
+    {{-- ═══════════════════════════════════════════════════════
+         HERO BANNER
+    ════════════════════════════════════════════════════════ --}}
+    <section class="contact-hero">
+        <div class="container hero-inner">
+            <h1>
+                "La inversión en tecnología<br>
+                <em>se paga sola.</em><br>
+                Déjenos mostrarle cómo."
+            </h1>
+            <p class="sub-headline">
+                Moollish + Sat2Farm le entregan la tecnología.<br class="d-none d-md-block">
+                Usted solo pone la tierra y las ganas.
+            </p>
+            <span class="cta-badge">
+                📲 Complete el formulario y un experto le mostrará cómo aplicar esto en su finca.
+            </span>
         </div>
-        <div class="header-bar" id="open-button">
-            <span></span>
-            <span></span>
-            <span></span>
-        </div>
-    </nav>
-    <nav class="menu">
-        <div class="mobile-menu-area d-lg-none">
-            <div class="mobile-menu-area-inner" id="scrollbar">
-                <ul class="m-menu">
-                    <li><a href="{{ route('login') }}">Iniciar Sesión</a></li>
-                    <li><a href="service.html">Services</a></li>
-                </ul>
+    </section>
+
+    {{-- ═══════════════════════════════════════════════════════
+         CONTACT SECTION
+    ════════════════════════════════════════════════════════ --}}
+    <section class="contact-section">
+        <div class="container">
+
+            {{-- Success flash --}}
+            @if (session('success'))
+                <div class="success-banner">
+                    <span style="font-size:1.25rem;">✅</span>
+                    {{ session('success') }}
+                </div>
+            @endif
+
+            <div class="row align-items-start">
+
+                {{-- ────────────────────────────────────────
+                     FORM COLUMN
+                ──────────────────────────────────────── --}}
+                <div class="col-lg-7" style="margin-bottom:32px;">
+                    <div class="contact-card">
+                        <h5 class="sub-title">¿Tienes una duda?</h5>
+                        <h2 class="heading">Solicita tu demo gratuita</h2>
+
+                        <form action="{{ route('contact.send') }}" method="POST" novalidate>
+                            @csrf
+
+                            {{-- Name --}}
+                            <div class="form-group" style="margin-bottom:16px;">
+                                <input
+                                    class="form-control @error('name') is-invalid @enderror"
+                                    name="name"
+                                    placeholder="Nombre completo *"
+                                    type="text"
+                                    value="{{ old('name') }}"
+                                >
+                                @error('name')
+                                    <span class="field-error">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            {{-- Email & Phone --}}
+                            <div class="row" style="margin-bottom:0;">
+                                <div class="col-md-6" style="margin-bottom:16px;">
+                                    <div class="form-group">
+                                        <input
+                                            class="form-control @error('email') is-invalid @enderror"
+                                            name="email"
+                                            placeholder="Email *"
+                                            type="email"
+                                            value="{{ old('email') }}"
+                                        >
+                                        @error('email')
+                                            <span class="field-error">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-6" style="margin-bottom:16px;">
+                                    <div class="form-group">
+                                        <input
+                                            class="form-control"
+                                            name="phone"
+                                            placeholder="Teléfono"
+                                            type="text"
+                                            value="{{ old('phone') }}"
+                                        >
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Field 1: user_type (radio) --}}
+                            <div class="field-group">
+                                <span class="field-group-label">
+                                    ¿Es usted agricultor o pertenece a una empresa agroindustrial? *
+                                </span>
+                                <div class="option-pills">
+                                    @foreach (['Agricultor', 'Empresa agroindustrial'] as $opt)
+                                        <div class="option-pill">
+                                            <input
+                                                type="radio"
+                                                name="user_type"
+                                                id="ut_{{ $loop->index }}"
+                                                value="{{ $opt }}"
+                                                {{ old('user_type') === $opt ? 'checked' : '' }}
+                                            >
+                                            <label for="ut_{{ $loop->index }}">
+                                                <span class="pill-dot"></span>
+                                                {{ $opt }}
+                                            </label>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                @error('user_type')
+                                    <span class="field-error">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            {{-- Field 2: sat2farm_expectations (checkbox) --}}
+                            <div class="field-group">
+                                <span class="field-group-label">
+                                    ¿Qué espera de la aplicación Sat2Farm? *
+                                </span>
+                                <div class="option-pills">
+                                    @foreach ([
+                                        'Análisis de suelos',
+                                        'Mejorar el rendimiento',
+                                        'Reducir las pérdidas de cosechas',
+                                        'Mejor asesoramiento agrícola',
+                                    ] as $opt)
+                                        <div class="option-pill is-checkbox">
+                                            <input
+                                                type="checkbox"
+                                                name="sat2farm_expectations[]"
+                                                id="exp_{{ $loop->index }}"
+                                                value="{{ $opt }}"
+                                                {{ in_array($opt, old('sat2farm_expectations', [])) ? 'checked' : '' }}
+                                            >
+                                            <label for="exp_{{ $loop->index }}">
+                                                <span class="pill-dot"></span>
+                                                {{ $opt }}
+                                            </label>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                @error('sat2farm_expectations')
+                                    <span class="field-error">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            {{-- Field 3: improvement_goals (checkbox) --}}
+                            <div class="field-group">
+                                <span class="field-group-label">
+                                    ¿Qué busca mejorar para sus agricultores? *
+                                </span>
+                                <div class="option-pills">
+                                    @foreach ([
+                                        'Mejorar los servicios para los agricultores',
+                                        'Añadir capacidades de asesoramiento',
+                                        'Integrar la tecnología en mi trabajo',
+                                        'Explorando oportunidades',
+                                    ] as $opt)
+                                        <div class="option-pill is-checkbox">
+                                            <input
+                                                type="checkbox"
+                                                name="improvement_goals[]"
+                                                id="goal_{{ $loop->index }}"
+                                                value="{{ $opt }}"
+                                                {{ in_array($opt, old('improvement_goals', [])) ? 'checked' : '' }}
+                                            >
+                                            <label for="goal_{{ $loop->index }}">
+                                                <span class="pill-dot"></span>
+                                                {{ $opt }}
+                                            </label>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                @error('improvement_goals')
+                                    <span class="field-error">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            {{-- Message --}}
+                            <div class="form-group" style="margin-bottom:24px;">
+                                <textarea
+                                    class="form-control @error('message') is-invalid @enderror"
+                                    name="message"
+                                    placeholder="Coméntanos tus necesidades (opcional)"
+                                >{{ old('message') }}</textarea>
+                                @error('message')
+                                    <span class="field-error">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            {{-- Submit --}}
+                            <div class="form-group">
+                                <button type="submit" class="btn-demo">
+                                    <i class="fa fa-paper-plane" style="margin-right:8px;"></i>
+                                    Solicitar demo sin costo
+                                </button>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+
+                {{-- ────────────────────────────────────────
+                     CONTACT INFO COLUMN
+                ──────────────────────────────────────── --}}
+                <div class="col-lg-5">
+                    <div class="contact-info-card">
+                        <h2>Información de <span>contacto</span></h2>
+                        <p>
+                            Transforma tu finca con tecnología, asegurando productividad y sostenibilidad
+                            para el bienestar de tu hato y tu comunidad.
+                        </p>
+                        <ul>
+                            <li>
+                                <div class="ci-icon"><i class="fas fa-phone-alt"></i></div>
+                                <div class="ci-text">
+                                    <h5>Teléfono</h5>
+                                    <a href="tel:+573143963815">+57 314 396 3815</a>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="ci-icon"><i class="fas fa-map-marker-alt"></i></div>
+                                <div class="ci-text">
+                                    <h5>Ubicanos</h5>
+                                    <p>Barranquilla, Colombia</p>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="ci-icon"><i class="fas fa-envelope-open-text"></i></div>
+                                <div class="ci-text">
+                                    <h5>Correo oficial</h5>
+                                    <a href="mailto:info@moollish.com">info@moollish.com</a>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
 
             </div>
         </div>
-    </nav>
-</div>
-<!-- mobile-nav section ending here -->
+    </section>
 
-<!-- header section start here -->
-<header class="header-section style-2 style-4  d-none d-lg-block">
-    <div class="header-bottom">
-        <div class="row">
-            <nav class="primary-menu">
-                <div class="menu-area">
-                    <div class="row justify-content-between align-items-center">
-                        <a href="{{ route('/') }}" class="logo">
-                            <img src="/assets/images/logo-letra3.png" alt="logo" style="width:180px">
-                        </a>
-                        <div class="main-menu-area d-flex align-items-center">
-                            <ul class="main-menu d-flex align-items-center">
-                                <li><a href="{{ route('/') }}">Inicio</a>
-
-                                </li>
-
-
-                                <li><a href="{{ route('contactanos') }}" class="active">Contáctanos</a></li>
-
-                                <li><a href="{{ route('login') }}"><button href="contact-us.html"
-                                            style="background-color: #e49b39;
-                                    color: white;
-                                    padding: 10px 41px;
-                                    border: #e49b39 solid 1px;
-                                    border-radius: 20px;
-                                    font-family: 'Garet', sans- serif;
-                                    font-size: 18px;">Iniciar
-                                            Sesión</button></a></li>
-                            </ul>
-                        </div>
-
-
-                    </div>
-                </div>
-            </nav>
-        </div>
-    </div>
-</header>
-
-<div class="contact-container">
-    <div class="left-col">
-
-    </div>
-    <div class="right-col">
-        {{-- <div class="theme-switch-wrapper">
-            <label class="theme-switch" for="checkbox">
-                <input type="checkbox" id="checkbox" />
-                <div class="slider round"></div>
-            </label>
-            <div class="description">Modo oscuro</div>
-        </div> --}}
-
-        <h1 class="contact-title">Contáctanos</h1>
-        <p class="contact-description" style="font-family: 'Garet' !important;">Para mayor información por favor enviarnos sus datos en el Siguiente formato y lo contactaremos.</p>
-
-        <form id="contact-form" method="post" class="contact-form">
-            <label for="name" class="contact-label">Nombre completo</label>
-            <input type="text" id="name" name="name" class="contact-input" placeholder="Tu nombre completo" required>
-
-            <label for="email" class="contact-label">Correo electrónico</label>
-            <input type="email" id="email" name="email" class="contact-input" placeholder="Tu dirección de correo electrónico" required>
-
-            <label for="message" class="contact-label">Mensaje</label>
-            <textarea rows="6" id="message" name="message" class="contact-textarea" placeholder="Tu mensaje" required></textarea>
-
-            <button type="submit" id="submit" name="submit" class="contact-button">Enviar</button>
-        </form>
-
-        <div id="error" class="contact-error"></div>
-        <div id="success-msg" class="contact-success-msg"></div>
-    </div>
-</div>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            // Ocultar la imagen de precarga 5 segundos después de que la página ha cargado completamente
-            var loaderWrapper = document.getElementById("loader-wrapper");
-            setTimeout(function() {
-                loaderWrapper.style.display = "none";
-            }, 2000); // 5000 milisegundos = 5 segundos
-        });
-    </script>
-    <!-- Image credit: Oliver Sjöström https://www.pexels.com/photo/body-of-water-near-green-mountain-931018/  -->
-    <script>
-        // Selector para el interruptor de tema (claro/oscuro)
-        const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
-
-        // Función para cambiar el tema
-        function switchTheme(e) {
-            if (e.target.checked) {
-                document.documentElement.setAttribute("data-theme", "dark");
-            } else {
-                document.documentElement.setAttribute("data-theme", "light");
-            }
-        }
-
-        // Agregar evento para cambiar el tema
-        toggleSwitch.addEventListener("change", switchTheme, false);
-
-        // Elementos del formulario
-        const name = document.getElementById("name");
-        const email = document.getElementById("email");
-        const message = document.getElementById("message");
-        const contactForm = document.getElementById("contact-form");
-        const errorElement = document.getElementById("error");
-        const successMsg = document.getElementById("success-msg");
-        const submitBtn = document.getElementById("submit");
-
-        // Validación del formulario
-        const validate = (e) => {
-            e.preventDefault();
-
-            if (name.value.length < 3) {
-                errorElement.innerHTML = "Tu nombre debe tener al menos 3 caracteres.";
-                return false;
-            }
-
-            if (!(email.value.includes(".") && email.value.includes("@"))) {
-                errorElement.innerHTML = "Por favor, ingresa una dirección de correo electrónico válida.";
-                return false;
-            }
-
-            if (!emailIsValid(email.value)) {
-                errorElement.innerHTML = "Por favor, ingresa una dirección de correo electrónico válida.";
-                return false;
-            }
-
-            if (message.value.length < 15) {
-                errorElement.innerHTML = "Por favor, escribe un mensaje más largo.";
-                return false;
-            }
-
-            // Si todas las validaciones pasan
-            errorElement.innerHTML = "";
-            successMsg.innerHTML = "¡Gracias! Me pondré en contacto contigo lo antes posible.";
-
-            setTimeout(function() {
-                successMsg.innerHTML = "";
-                document.getElementById("contact-form").reset();
-            }, 6000);
-
-            return true;
-        };
-
-        // Validación del correo electrónico
-        const emailIsValid = (email) => {
-            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-        };
-
-        // Agregar evento para el botón de envío
-        submitBtn.addEventListener("click", validate);
-    </script>
-
-<script src="Landing/js/jquery.js"></script>
-<script src="Landing/js/fontawesome.min.js"></script>
-<script src="Landing/js/jquery.counterup.min.js"></script>
-<script src='Landing/js/jquery.easing.js'></script>
-<script src='Landing/js/slick.min.js'></script>
-<script src="Landing/js/lightcase.js"></script>
-<script src="Landing/js/circular-countdown.js"></script>
-<script src="Landing/js/jquery.countdown.min.js"></script>
-<script src="Landing/js/waypoints.min.js"></script>
-<script src="Landing/js/bootstrap.min.js"></script>
-<script src="Landing/js/isotope.pkgd.min.js"></script>
-<script src="Landing/js/wow.min.js"></script>
-<script src="Landing/js/theia-sticky-sidebar.js"></script>
-<script src="Landing/js/swiper.min.js"></script>
-<script src="Landing/js/functions.js"></script>
-
-</body>
-
-</html>
+@endsection

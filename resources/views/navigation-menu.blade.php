@@ -66,17 +66,6 @@
                         <span class="nxl-mtext">Mis animales</span><span class="nxl-arrow"></span>
                     </a>
                 </li>
-               <li class="nxl-item nxl-hasmenu">
-    <a href="{{ route('marketplace.panel') }}" class="nxl-link">
-        <span class="nxl-micon">
-            <span class="material-symbols-outlined">
-                storefront
-            </span>
-        </span>
-        <span class="nxl-mtext">Marketplace</span>
-        <span class="nxl-arrow"></span>
-    </a>
-</li>
                 @endif
                 @if ($role == 'admin')
                 <li class="nxl-item nxl-hasmenu">
@@ -98,7 +87,6 @@
                         <span class="nxl-mtext">Dashboard Caracterización</span><span class="nxl-arrow"></span>
                     </a>
                 </li>
-
                 @endif
 
                 <li class="nxl-item nxl-caption">

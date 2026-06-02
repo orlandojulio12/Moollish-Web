@@ -72,6 +72,8 @@ Route::get('/', function () {
     return view('welcome');
 });
 Route::view('/contactanos', 'contactanos')->name('contactanos');
+Route::view('/Sat2Farm', 'about')->name('about');
+Route::post('/contactanos', [App\Http\Controllers\ContactController::class, 'send'])->name('contact.send');
 
 Route::get('/', 'App\Http\Controllers\UserController@welcome')->name('/');
 Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');

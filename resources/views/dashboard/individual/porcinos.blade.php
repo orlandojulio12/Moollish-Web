@@ -237,9 +237,7 @@
 @endsection
 
 @section('scripts')
-
 <script>
-
 document.addEventListener('DOMContentLoaded', function() {
     // Verificar que Chart.js esté disponible
     if (typeof Chart === 'undefined') {

@@ -1,24 +1,11 @@
-<!DOCTYPE html>
-<html lang="es">
+@extends('layouts.landing')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Inicia sesión - Moollish</title>
-    {{-- Icons google --}}
-    <link rel="icon" type="image/x-icon" href="../assets/favicon/favicon.ico">
-    <link rel="apple-touch-icon" sizes="180x180" href="../assets/favicon/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="../assets/favicon/favicon-16x16.png">
-    <link rel="manifest" href="../site.webmanifest">
-    <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap"
-        rel="stylesheet">
-    <style>
+@section('title', 'Login | Moollish')
+
+@section('content')
+
+@push('styles')
+<style>
         html,
         body {
             height: 100%;
@@ -396,8 +383,8 @@
         input[type="checkbox"] {
             -webkit-appearance: none;
             appearance: none;
-            width: 20px;
-            height: 20px;
+            width: 30px;
+           height: 20px !important;
             border: 2px solid #ccc;
             border-radius: 4px;
             outline: none;
@@ -543,17 +530,132 @@
         #emailVerificationModal .btn-primary:hover {
             background-color: #B57827;
         }
-    </style>
-</head>
+        .image-container {
+        width: 60%;
+        margin: 20px auto;
+        position: relative;
+        overflow: hidden;
+        border-radius: 10px;
+    }
 
-<body>
+    .fade-image {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background-size: cover;
+        background-position: center;
+        opacity: 0;
+        transition: opacity 1.5s ease-in-out;
+    }
+
+    .fade-image.active {
+        opacity: 1;
+    }
+    .alert-success {
+        color: #b57826;
+    background: #e49b3936;
+    padding: 10px 12px;
+    border-radius: 6px;
+    margin: 0px 0px 10px 0px;
+    }
+
+    /* Estilos para el modal */
+    .custom-modal {
+        display: none;
+        /* Oculto por defecto */
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .custom-modal-content {
+        background-color: #fff;
+        margin: 10% auto;
+        padding: 20px;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 400px;
+        position: relative;
+    }
+
+    .custom-modal-close {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        font-size: 28px;
+        font-weight: bold;
+        color: #aaa;
+        cursor: pointer;
+    }
+
+    .custom-modal-body {
+        margin: 20px 0px;
+    }
+
+    .custom-modal-close:hover {
+        color: #000;
+    }
+
+    .custom-modal-footer {
+        text-align: right;
+        border-top: 1px solid #e3e3e3;
+        margin-top: 20px;
+        padding: 20px 0px 0px 0px;
+    }
+    #resendBtn {
+        background: transparent;
+    border: none;
+    text-decoration: underline;
+    color: #e49b39;
+    font-weight: 600;
+    padding: 0px;
+    }
+    .btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        color: #fff;
+    }
+
+    /* Estilos para mensajes de feedback */
+    .feedback-message {
+        padding: 10px 12px;
+        border-radius: 6px;
+        margin: 10px 0px;
+        font-size: 14px;
+    }
+
+    .feedback-message.success {
+        color: #b57826;
+        background: #e49b3936;
+    }
+
+    .feedback-message.error {
+        color: #dc3741;
+        background: #dc374136;
+    }
+    </style>
+    @endpush
+
+    <!-- Contenido principal -->
+    <main>
+
     <div class="main">
         <div class="container-double">
             <!-- Formulario de Login -->
             <div class="form-login">
                 <form method="POST" action="{{ route('login') }}">
                     @csrf
-                    <input type="hidden" name="from" value="{{ request('from') }}">
                     @if (session('error'))
                         <div class="alert alert-danger">
                             {{ session('error') }}
@@ -571,10 +673,7 @@
                             @endforeach
                         </div>
                     @endif
-                    <div class="logo-center">
-                        <div class="moollish"></div>
-                        <span class="moollish-span">Moollish</span>
-                    </div>
+                    
                     <div class="main-form">
                         <h1 class="moollish-span">Inicia Sesión</h1>
                         <span class="text-paragraph">
@@ -657,95 +756,14 @@
                     <div class="main-form" style="margin: 20px 0;">
                         <h1 class="moollish-span">Regístrate</h1>
                         <br>
-                        <input type="hidden" name="id_rol" id="registro_rol" value="5">
-
-                        <div x-data="{ rolSeleccionado: 'comprador' }" class="mb-4">
-
-                            <label class="block text-sm font-semibold text-gray-700 mb-3">
-                                ¿Cómo vas a usar Moollish Marketplace?
-                            </label>
-
-                            {{-- OPCIÓN COMPRADOR --}}
-                            <div @click="rolSeleccionado = 'comprador'; document.getElementById('registro_rol').value = 5"
-                                 :class="rolSeleccionado === 'comprador'
-                                     ? 'border-2 bg-amber-50'
-                                     : 'border border-gray-200 hover:border-amber-300'"
-                                 class="cursor-pointer rounded-xl p-4 mb-3 transition-all"
-                                 :style="rolSeleccionado === 'comprador' ? 'border-color:#e49b39' : ''">
-                                <div class="flex items-start gap-3">
-                                    <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
-                                         :style="rolSeleccionado === 'comprador'
-                                             ? 'background-color:#e49b39'
-                                             : 'background-color:#f3f4f6'">
-                                        <span class="text-lg">🛒</span>
-                                    </div>
-                                    <div>
-                                        <p class="font-semibold text-gray-900 text-sm">Comprador</p>
-                                        <p class="text-xs text-gray-500 mt-0.5 leading-relaxed">
-                                            Explora y compra ganado, lotes e insumos ganaderos.
-                                            Gratis, sin costo.
-                                        </p>
-                                    </div>
-                                    <div class="ml-auto flex-shrink-0">
-                                        <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center"
-                                             :style="rolSeleccionado === 'comprador'
-                                                 ? 'border-color:#e49b39; background:#e49b39'
-                                                 : 'border-color:#d1d5db'">
-                                            <div x-show="rolSeleccionado === 'comprador'"
-                                                 class="w-2 h-2 rounded-full bg-white"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {{-- OPCIÓN PROVEEDOR --}}
-                            <div @click="rolSeleccionado = 'proveedor'; document.getElementById('registro_rol').value = 6"
-                                 :class="rolSeleccionado === 'proveedor'
-                                     ? 'border-2 bg-amber-50'
-                                     : 'border border-gray-200 hover:border-amber-300'"
-                                 class="cursor-pointer rounded-xl p-4 transition-all"
-                                 :style="rolSeleccionado === 'proveedor' ? 'border-color:#e49b39' : ''">
-                                <div class="flex items-start gap-3">
-                                    <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
-                                         :style="rolSeleccionado === 'proveedor'
-                                             ? 'background-color:#e49b39'
-                                             : 'background-color:#f3f4f6'">
-                                        <span class="text-lg">🐄</span>
-                                    </div>
-                                    <div>
-                                        <p class="font-semibold text-gray-900 text-sm">Proveedor</p>
-                                        <p class="text-xs text-gray-500 mt-0.5 leading-relaxed">
-                                            Vende ganado, lotes e insumos. Publica tus animales
-                                            y llega a compradores de todo el país.
-                                        </p>
-                                        <span class="inline-block mt-1 text-xs font-semibold px-2 py-0.5
-                                                     rounded-full bg-green-100 text-green-700">
-                                            Gratis para empezar
-                                        </span>
-                                    </div>
-                                    <div class="ml-auto flex-shrink-0">
-                                        <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center"
-                                             :style="rolSeleccionado === 'proveedor'
-                                                 ? 'border-color:#e49b39; background:#e49b39'
-                                                 : 'border-color:#d1d5db'">
-                                            <div x-show="rolSeleccionado === 'proveedor'"
-                                                 class="w-2 h-2 rounded-full bg-white"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {{-- NOTA MOOLLISH --}}
-                            <div class="mt-3 flex items-start gap-2 bg-gray-50 rounded-lg p-3">
-                                <span class="text-gray-400 text-xs mt-0.5">ℹ️</span>
-                                <p class="text-xs text-gray-500 leading-relaxed">
-                                    ¿Eres ganadero y quieres gestionar tu finca completa?
-                                    La membresía <strong class="text-gray-700">Moollish Propietario</strong>
-                                    incluye todo el sistema de gestión más el marketplace.
-                                    <a href="#" class="underline" style="color:#e49b39">Más información</a>
-                                </p>
-                            </div>
-
+                        <div class="input-signup">
+                            <label for="id_rol">¿Qué tipo de usuario eres?</label>
+                            <select name="id_rol" id="id_rol" required class="form-input">
+                                <option value="3">Propietario</option>
+                                <option value="2">Encuestador</option>
+                                <option value="4">Veterinario</option>
+                                <option value="5">Técnico</option>
+                            </select>
                         </div>
                         <div class="input-signup">
                             <label for="tipo_documento">Tipo y numero de documento</label>
@@ -880,122 +898,6 @@
         </div>
     </div>
 </body>
-<style>
-    .image-container {
-        width: 60%;
-        margin: 20px auto;
-        position: relative;
-        overflow: hidden;
-        border-radius: 10px;
-    }
-
-    .fade-image {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        background-size: cover;
-        background-position: center;
-        opacity: 0;
-        transition: opacity 1.5s ease-in-out;
-    }
-
-    .fade-image.active {
-        opacity: 1;
-    }
-    .alert-success {
-        color: #b57826;
-    background: #e49b3936;
-    padding: 10px 12px;
-    border-radius: 6px;
-    margin: 0px 0px 10px 0px;
-    }
-
-    /* Estilos para el modal */
-    .custom-modal {
-        display: none;
-        /* Oculto por defecto */
-        position: fixed;
-        z-index: 1000;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background-color: rgba(0, 0, 0, 0.5);
-    }
-
-    .custom-modal-content {
-        background-color: #fff;
-        margin: 10% auto;
-        padding: 20px;
-        border-radius: 8px;
-        width: 90%;
-        max-width: 400px;
-        position: relative;
-    }
-
-    .custom-modal-close {
-        position: absolute;
-        top: 10px;
-        right: 15px;
-        font-size: 28px;
-        font-weight: bold;
-        color: #aaa;
-        cursor: pointer;
-    }
-
-    .custom-modal-body {
-        margin: 20px 0px;
-    }
-
-    .custom-modal-close:hover {
-        color: #000;
-    }
-
-    .custom-modal-footer {
-        text-align: right;
-        border-top: 1px solid #e3e3e3;
-        margin-top: 20px;
-        padding: 20px 0px 0px 0px;
-    }
-    #resendBtn {
-        background: transparent;
-    border: none;
-    text-decoration: underline;
-    color: #e49b39;
-    font-weight: 600;
-    padding: 0px;
-    }
-    .btn {
-        padding: 8px 16px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-    }
-
-    .btn-primary {
-        background-color: #007bff;
-        color: #fff;
-    }
-
-    /* Estilos para mensajes de feedback */
-    .feedback-message {
-        padding: 10px 12px;
-        border-radius: 6px;
-        margin: 10px 0px;
-        font-size: 14px;
-    }
-
-    .feedback-message.success {
-        color: #b57826;
-        background: #e49b3936;
-    }
-
-    .feedback-message.error {
-        color: #dc3741;
-        background: #dc374136;
-    }
-</style>
 
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -1412,5 +1314,9 @@
     });
 </script>
 
+
+    </main>
+
+@endsection
 
 </html>

@@ -354,6 +354,7 @@ ficha animales
 @endsection
 @section('content')
 <meta name="csrf-token" content="{{ csrf_token() }}">
+<meta name="animal-store-url" content="{{ route('animal.store') }}">
 
 {{-- Eliminar estas alertas flotantes estáticas --}}
 {{-- <div class="alert-floating alert-success-custom" id="successAlert" style="display: none;">
@@ -1601,9 +1602,30 @@ document.addEventListener('DOMContentLoaded', function() {
                 for (let [key, value] of formData.entries()) {
                     console.log(`  ${key}: ${value}`);
                 }
+                
+                $('#animalIsCompra').on('change', function () {
+                const checked = $(this).is(':checked');
+                
+                
+                $('#compraFields').toggleClass('d-none', !checked);
+                $('#compraFields')
+                .find('input')
+                .prop('disabled', !checked);
+                });
+                // Checkbox comprado
+                const isComprado = $('#animalIsCompra').is(':checked');
+                
+                if (!isComprado) {
+                    formData.delete('isComprado');
+                    formData.delete('proveedor');
+                    formData.delete('fechaCompra');
+                    formData.delete('precioCompra');
+                } else {
+                    formData.set('isComprado', 'true');
+                }
 
                 $.ajax({
-                    url: "{{    ('animal.store') }}", // Ruta para guardar animal
+                    url: $('meta[name="animal-store-url"]').attr('content'), // Ruta para guardar animal
                     method: "POST",
                     data: formData,
                     processData: false,

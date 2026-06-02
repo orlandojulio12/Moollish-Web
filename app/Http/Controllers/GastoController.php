@@ -81,7 +81,7 @@ class GastoController extends Controller
         return view('gastos.show', compact('clase', 'predios', 'gastos', 'planCuentas', 'user'));
     }*/
 
-   public function show(Request $request)
+     public function show(Request $request)
 {
     $user = Auth::user();
 

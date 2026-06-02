@@ -13,8 +13,10 @@ use App\Models\UserMembership;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use App\Http\Requests\UserRequest;
+use App\Models\AnimalDeleteAudit;
 use App\Models\MembershipPlan;
 use App\Models\Role;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
@@ -22,8 +24,7 @@ use Illuminate\View\View;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
-
-
+use Resend\Laravel\Facades\Resend;
 
 class UserController extends Controller
 {
@@ -127,19 +128,18 @@ class UserController extends Controller
 
             DB::commit();
 
-             // Cargar relaciones necesarias antes de devolver la respuesta JSON
+            // Cargar relaciones necesarias antes de devolver la respuesta JSON
             $user->load('role', 'predios');
 
             // Devolver respuesta JSON exitosa
             return response()->json($user, 201);
-
         } catch (\Illuminate\Validation\ValidationException $e) {
             // Laravel maneja esto automáticamente para AJAX devolviendo 422
             // No es necesario hacer nada aquí si se usa UserRequest o $request->validate()
             // Pero si quisiéramos devolverlo manualmente:
-             // return response()->json(['message' => 'Error de validación', 'errors' => $e->errors()], 422);
+            // return response()->json(['message' => 'Error de validación', 'errors' => $e->errors()], 422);
             // Por si acaso, relanzamos para que Laravel lo maneje
-             throw $e;
+            throw $e;
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -149,7 +149,7 @@ class UserController extends Controller
             // Devolver respuesta JSON de error genérico
             return response()->json([
                 'message' => 'Hubo un problema al crear el usuario. Por favor, inténtalo de nuevo.',
-                 'error' => $e->getMessage() // Opcional: enviar detalles del error (cuidado en producción)
+                'error' => $e->getMessage() // Opcional: enviar detalles del error (cuidado en producción)
             ], 500);
         }
     }
@@ -171,7 +171,7 @@ class UserController extends Controller
     public function update(Request $request, User $user): RedirectResponse
     {
         try {
-          /*   dd($request->all()); */
+            /*   dd($request->all()); */
             // Validar los datos proporcionados
             $validatedData = $request->validate([
                 'name' => 'nullable|string|max:255',
@@ -258,68 +258,66 @@ class UserController extends Controller
 
 
 
-/* Membresias */
+    /* Membresias */
 
-public function asignarMembresia(Request $request)
-{
-    // Validar los datos del formulario
-    $data = $request->validate([
-        'user_id'            => 'required|exists:users,id',
-        'membership_plan_id' => 'required|exists:membership_plans,id',
-        'fecha_inicio'       => 'required|date',
-        'fecha_expiracion'   => 'required|date|after:fecha_inicio',
-    ]);
-
-    // Definir el estado como "activo" y el flag de free trial según corresponda
-    $data['estado'] = 'activo';
-    $data['es_free_trial'] = false;
-
-    // Desactivar las membresías activas existentes para ese usuario
-    UserMembership::where('user_id', $data['user_id'])
-        ->where('estado', 'activo')
-        ->update(['estado' => 'expirado']);
-
-    // Crear la nueva membresía con estado "activo"
-    $membership = UserMembership::create([
-        'user_id'            => $data['user_id'],
-        'membership_plan_id' => $data['membership_plan_id'],
-        'fecha_inicio'       => $data['fecha_inicio'],
-        'fecha_expiracion'   => $data['fecha_expiracion'],
-        'estado'             => $data['estado'],
-        'es_free_trial'      => $data['es_free_trial'],
-    ]);
-
-    return redirect()->back()->with('success', 'Membresía asignada correctamente.');
-}
-
-public function actualizarMembresia(Request $request, UserMembership $membership)
-{
-    $request->validate([
-        'estado'           => 'required|in:activo,pendiente,rechazado,expirado',
-        'fecha_expiracion' => 'required|date|after_or_equal:' . $membership->fecha_inicio,
-    ]);
-    try {
-        // Si se actualiza la membresía a "activo", desactivar las demás del mismo usuario
-        if ($request->estado === 'activo') {
-            UserMembership::where('user_id', $membership->user_id)
-                ->where('estado', 'activo')
-                ->where('id', '!=', $membership->id)
-                ->update(['estado' => 'expirado']);
-        }
-
-        $membership->update([
-            'estado'           => $request->estado,
-            'fecha_expiracion' => $request->fecha_expiracion,
+    public function asignarMembresia(Request $request)
+    {
+        // Validar los datos del formulario
+        $data = $request->validate([
+            'user_id'            => 'required|exists:users,id',
+            'membership_plan_id' => 'required|exists:membership_plans,id',
+            'fecha_inicio'       => 'required|date',
+            'fecha_expiracion'   => 'required|date|after:fecha_inicio',
         ]);
 
-        return redirect()->back()->with('success', 'Membresía actualizada exitosamente.');
-    } catch (\Exception $e) {
-        Log::error('Error al actualizar la membresía: ' . $e->getMessage());
-        return redirect()->back()->with('error', 'Ocurrió un error al actualizar la membresía.');
+        // Definir el estado como "activo" y el flag de free trial según corresponda
+        $data['estado'] = 'activo';
+        $data['es_free_trial'] = false;
+
+        // Desactivar las membresías activas existentes para ese usuario
+        UserMembership::where('user_id', $data['user_id'])
+            ->where('estado', 'activo')
+            ->update(['estado' => 'expirado']);
+
+        // Crear la nueva membresía con estado "activo"
+        $membership = UserMembership::create([
+            'user_id'            => $data['user_id'],
+            'membership_plan_id' => $data['membership_plan_id'],
+            'fecha_inicio'       => $data['fecha_inicio'],
+            'fecha_expiracion'   => $data['fecha_expiracion'],
+            'estado'             => $data['estado'],
+            'es_free_trial'      => $data['es_free_trial'],
+        ]);
+
+        return redirect()->back()->with('success', 'Membresía asignada correctamente.');
     }
-}
 
+    public function actualizarMembresia(Request $request, UserMembership $membership)
+    {
+        $request->validate([
+            'estado'           => 'required|in:activo,pendiente,rechazado,expirado',
+            'fecha_expiracion' => 'required|date|after_or_equal:' . $membership->fecha_inicio,
+        ]);
+        try {
+            // Si se actualiza la membresía a "activo", desactivar las demás del mismo usuario
+            if ($request->estado === 'activo') {
+                UserMembership::where('user_id', $membership->user_id)
+                    ->where('estado', 'activo')
+                    ->where('id', '!=', $membership->id)
+                    ->update(['estado' => 'expirado']);
+            }
 
+            $membership->update([
+                'estado'           => $request->estado,
+                'fecha_expiracion' => $request->fecha_expiracion,
+            ]);
+
+            return redirect()->back()->with('success', 'Membresía actualizada exitosamente.');
+        } catch (\Exception $e) {
+            Log::error('Error al actualizar la membresía: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Ocurrió un error al actualizar la membresía.');
+        }
+    }
 
     public function solicitarMembresia(Request $request)
     {
@@ -344,7 +342,6 @@ public function actualizarMembresia(Request $request, UserMembership $membership
 
         return redirect()->back()->with('success', 'Solicitud de membresía enviada correctamente.');
     }
-
 
     public function administrarMembresias()
     {
@@ -381,8 +378,6 @@ public function actualizarMembresia(Request $request, UserMembership $membership
         return view('inicio.membresias', compact('user', 'memberships', 'solicitudes', 'planes'));
     }
 
-
-
     public function mostrarMembresias()
     {
         $user = Auth::user();
@@ -408,156 +403,401 @@ public function actualizarMembresia(Request $request, UserMembership $membership
         }
     }
 
-
-
-public function ajustes()
-{
-    $user = Auth::user();
-    // Carga los predios con sus parámetros
-    $predios = $user->predios()->with('parametros')->get();
-    return view('inicio.ajustes', compact('user', 'predios'));
-}
-
-// Nuevo método para obtener datos del usuario para el modal de edición
-public function getData($id)
-{
-    $user = User::with('role', 'predios')->find($id);
-
-    if (!$user) {
-        return response()->json(['message' => 'Usuario no encontrado.'], 404);
+    public function ajustes()
+    {
+        $user = Auth::user();
+        // Carga los predios con sus parámetros
+        $predios = $user->predios()->with('parametros')->get();
+        return view('inicio.ajustes', compact('user', 'predios'));
     }
 
-    // Puedes añadir lógica de autorización aquí si es necesario
-    // (ej. verificar si el usuario autenticado puede ver/editar este usuario)
+    // Nuevo método para obtener datos del usuario para el modal de edición
+    public function getData($id)
+    {
+        $user = User::with('role', 'predios')->find($id);
 
-    return response()->json($user);
-}
-
-// Método original update, ahora adaptado para AJAX y renombrado (o puedes reemplazar el original)
-public function updateAjax(Request $request, $id) //: RedirectResponse -> Ya no redirecciona, devuelve JSON
-{
-    $user = User::find($id);
-    if (!$user) {
-        return response()->json(['message' => 'Usuario no encontrado.'], 404);
-    }
-
-    // Lógica de autorización (ej: solo admin o el propio usuario pueden editar?)
-    // if (Auth::user()->cannot('update', $user)) {
-    //     return response()->json(['message' => 'No autorizado.'], 403);
-    // }
-
-    try {
-        // Validar los datos proporcionados
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'password' => 'nullable|string|min:8|confirmed', // 'confirmed' valida contra password_confirmation
-            'id_rol' => 'required|string|exists:roles,id',
-            'estado' => 'required|string|in:activo,expirado',
-            'tipo_documento' => 'required|string|in:nit,cedula,cedula_extranjeria,pasaporte',
-            'documento' => 'required|string|max:20',
-            'predios' => 'nullable|array', // Aceptar un array de IDs de predios
-            'predios.*' => 'exists:predios,id',
-            'profile_photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // Validación para la foto
-            'remove_profile_photo' => 'nullable|boolean' // Para saber si quitar la foto
-        ]);
-
-        DB::beginTransaction();
-
-        // Actualizar campos básicos
-        $user->name = $validatedData['name'];
-        $user->email = $validatedData['email'];
-        $user->id_rol = $validatedData['id_rol'];
-        $user->estado = $validatedData['estado'];
-        $user->tipo_documento = $validatedData['tipo_documento'];
-        $user->documento = $validatedData['documento'];
-
-        // Actualizar la contraseña solo si se proporcionó una nueva
-        if (!empty($validatedData['password'])) {
-            $user->password = Hash::make($validatedData['password']);
+        if (!$user) {
+            return response()->json(['message' => 'Usuario no encontrado.'], 404);
         }
 
-        // Manejar la foto de perfil
-        if ($request->input('remove_profile_photo') == '1' && $user->profile_photo_path) {
-            // Eliminar foto existente
-            if (Storage::disk('public')->exists($user->profile_photo_path)) {
-                Storage::disk('public')->delete($user->profile_photo_path);
-            }
-            $user->profile_photo_path = null;
-        } elseif ($request->hasFile('profile_photo')) {
-             // Eliminar foto anterior si existe una nueva
-             if ($user->profile_photo_path && Storage::disk('public')->exists($user->profile_photo_path)) {
-                Storage::disk('public')->delete($user->profile_photo_path);
-             }
-            // Subir nueva foto
-            $filename = uniqid() . '_' . time() . '.' . $request->profile_photo->extension();
-            $path = $request->file('profile_photo')->storeAs('profile_photos', $filename, 'public');
-            $user->profile_photo_path = $path;
+        // Puedes añadir lógica de autorización aquí si es necesario
+        // (ej. verificar si el usuario autenticado puede ver/editar este usuario)
+
+        return response()->json($user);
+    }
+
+    // Método original update, ahora adaptado para AJAX y renombrado (o puedes reemplazar el original)
+    public function updateAjax(Request $request, $id) //: RedirectResponse -> Ya no redirecciona, devuelve JSON
+    {
+        $user = User::find($id);
+        if (!$user) {
+            return response()->json(['message' => 'Usuario no encontrado.'], 404);
         }
-        // Si no se marca quitar y no se sube nueva, no se toca la foto existente
 
-        // Guardar cambios básicos y de foto/contraseña
-        $user->save();
+        // Lógica de autorización (ej: solo admin o el propio usuario pueden editar?)
+        // if (Auth::user()->cannot('update', $user)) {
+        //     return response()->json(['message' => 'No autorizado.'], 403);
+        // }
 
-        // Sincronizar predios (reemplaza las asociaciones existentes con las nuevas)
-        $user->predios()->sync($request->input('predios', []));
-
-        DB::commit();
-
-        // Cargar relaciones actualizadas antes de devolver
-        $user->load('role', 'predios');
-
-        // Devolver respuesta JSON exitosa
-        return response()->json($user, 200);
-
-    } catch (\Illuminate\Validation\ValidationException $e) {
-        // Laravel devuelve 422 automáticamente para AJAX
-         throw $e;
-    } catch (\Exception $e) {
-        DB::rollBack();
-        Log::error('Error al actualizar usuario (AJAX) ID ' . $id . ': ' . $e->getMessage());
-        return response()->json([
-            'message' => 'Hubo un problema al actualizar el usuario. Por favor, inténtalo de nuevo.',
-             'error' => $e->getMessage() // Opcional: enviar detalles del error
-        ], 500);
-    }
-}
-
-    // ==========================================
-    // MARKETPLACE UPGRADES (admin)
-    // ==========================================
-    public function upgrades()
-    {
-        $solicitudes = \App\Models\Marketplace\MkSolicitudUpgrade::with('user')
-            ->orderByRaw("FIELD(estado, 'pendiente', 'aprobado', 'rechazado')")
-            ->latest()
-            ->get();
-
-        return view('admin.marketplace.upgrades', compact('solicitudes'));
-    }
-
-    public function responderUpgrade(Request $request, $id)
-    {
-        $solicitud = \App\Models\Marketplace\MkSolicitudUpgrade::findOrFail($id);
-        $decision  = $request->input('decision'); // aprobado | rechazado
-
-        $solicitud->update([
-            'estado'         => $decision,
-            'respondido_por' => auth()->id(),
-            'respondido_at'  => now(),
-        ]);
-
-        if ($decision === 'aprobado') {
-            $solicitud->user->update([
-                'id_rol' => $solicitud->rol_solicitado,
+        try {
+            // Validar los datos proporcionados
+            $validatedData = $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+                'password' => 'nullable|string|min:8|confirmed', // 'confirmed' valida contra password_confirmation
+                'id_rol' => 'required|string|exists:roles,id',
+                'estado' => 'required|string|in:activo,expirado',
+                'tipo_documento' => 'required|string|in:nit,cedula,cedula_extranjeria,pasaporte',
+                'documento' => 'required|string|max:20',
+                'predios' => 'nullable|array', // Aceptar un array de IDs de predios
+                'predios.*' => 'exists:predios,id',
+                'profile_photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // Validación para la foto
+                'remove_profile_photo' => 'nullable|boolean' // Para saber si quitar la foto
             ]);
+
+            DB::beginTransaction();
+
+            // Actualizar campos básicos
+            $user->name = $validatedData['name'];
+            $user->email = $validatedData['email'];
+            $user->id_rol = $validatedData['id_rol'];
+            $user->estado = $validatedData['estado'];
+            $user->tipo_documento = $validatedData['tipo_documento'];
+            $user->documento = $validatedData['documento'];
+
+            // Actualizar la contraseña solo si se proporcionó una nueva
+            if (!empty($validatedData['password'])) {
+                $user->password = Hash::make($validatedData['password']);
+            }
+
+            // Manejar la foto de perfil
+            if ($request->input('remove_profile_photo') == '1' && $user->profile_photo_path) {
+                // Eliminar foto existente
+                if (Storage::disk('public')->exists($user->profile_photo_path)) {
+                    Storage::disk('public')->delete($user->profile_photo_path);
+                }
+                $user->profile_photo_path = null;
+            } elseif ($request->hasFile('profile_photo')) {
+                // Eliminar foto anterior si existe una nueva
+                if ($user->profile_photo_path && Storage::disk('public')->exists($user->profile_photo_path)) {
+                    Storage::disk('public')->delete($user->profile_photo_path);
+                }
+                // Subir nueva foto
+                $filename = uniqid() . '_' . time() . '.' . $request->profile_photo->extension();
+                $path = $request->file('profile_photo')->storeAs('profile_photos', $filename, 'public');
+                $user->profile_photo_path = $path;
+            }
+            // Si no se marca quitar y no se sube nueva, no se toca la foto existente
+
+            // Guardar cambios básicos y de foto/contraseña
+            $user->save();
+
+            // Sincronizar predios (reemplaza las asociaciones existentes con las nuevas)
+            $user->predios()->sync($request->input('predios', []));
+
+            DB::commit();
+
+            // Cargar relaciones actualizadas antes de devolver
+            $user->load('role', 'predios');
+
+            // Devolver respuesta JSON exitosa
+            return response()->json($user, 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Laravel devuelve 422 automáticamente para AJAX
+            throw $e;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error al actualizar usuario (AJAX) ID ' . $id . ': ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Hubo un problema al actualizar el usuario. Por favor, inténtalo de nuevo.',
+                'error' => $e->getMessage() // Opcional: enviar detalles del error
+            ], 500);
         }
-
-        $msg = $decision === 'aprobado'
-            ? 'Solicitud aprobada. El usuario ahora es proveedor.'
-            : 'Solicitud rechazada.';
-
-        return back()->with('success', $msg);
     }
 
+    /* ======================================================
+     | 1️⃣ SOLICITAR CÓDIGO (USER_ID DESDE REQUEST)
+     ====================================================== */
+    public function requestDeleteAnimalCode(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+        ]);
+
+        $user = User::find($request->user_id);
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'Usuario no encontrado'
+            ], 404);
+        }
+
+        // 📌 Auditoría: solicitud de código
+        AnimalDeleteAudit::create([
+            'user_id'    => $user->id,
+            'animal_id'  => 0, // aún no se define animal
+            'predio_id'  => null,
+            'action'     => 'delete_animal',
+            'status'     => 'code_requested',
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
+        if (!$this->sendDeleteAnimalVerificationCode($user)) {
+
+            // 📌 Auditoría: error enviando código
+            AnimalDeleteAudit::create([
+                'user_id'    => $user->id,
+                'animal_id'  => 0,
+                'predio_id'  => null,
+                'action'     => 'delete_animal',
+                'status'     => 'code_send_failed',
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]);
+
+            return response()->json([
+                'message' => 'Error enviando el código'
+            ], 500);
+        }
+
+        return response()->json([
+            'message' => 'Código enviado al correo registrado'
+        ]);
+    }
+
+    /* ======================================================
+     | 2️⃣ CONFIRMAR CÓDIGO + ELIMINAR ANIMAL
+     ====================================================== */
+    public function confirmDeleteAnimal(Request $request)
+    {
+        $request->validate([
+            'user_id'   => 'required|exists:users,id',
+            'id_animal' => 'required|exists:animales,id_animal',
+            'code'      => 'required|string',
+        ]);
+
+        $user = User::find($request->user_id);
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'Usuario no encontrado'
+            ], 404);
+        }
+
+        // 1️⃣ Validar código
+        if (!$this->validateDeleteAnimalCode($user, $request->code)) {
+
+            AnimalDeleteAudit::create([
+                'user_id'    => $user->id,
+                'animal_id'  => $request->id_animal,
+                'predio_id'  => null,
+                'action'     => 'delete_animal',
+                'status'     => 'invalid_or_expired_code',
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]);
+
+            return response()->json([
+                'message' => 'Código inválido o expirado'
+            ], 422);
+        }
+
+        // 2️⃣ Validar pertenencia del animal al usuario
+        $animal = Animal::where('id_animal', $request->id_animal)
+            ->whereHas('predio', function ($query) use ($user) {
+                $query->whereIn(
+                    'predios.id',
+                    $user->predios()->pluck('predios.id')
+                );
+            })
+            ->first();
+
+        if (!$animal) {
+
+            AnimalDeleteAudit::create([
+                'user_id'    => $user->id,
+                'animal_id'  => $request->id_animal,
+                'predio_id'  => null,
+                'action'     => 'delete_animal',
+                'status'     => 'unauthorized',
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]);
+
+            return response()->json([
+                'message' => 'No tienes permisos para eliminar este animal'
+            ], 403);
+        }
+
+       DB::beginTransaction();
+
+        try {
+        
+            // 📌 SNAPSHOT DEL ANIMAL ANTES DEL CAMBIO
+            $animalSnapshot = $animal->toArray();
+        
+            // 3️⃣ CAMBIO DE ESTADO (NO DELETE)
+            $animal->update([
+                'estado_vida' => 4,
+            ]);
+        
+            // 4️⃣ Limpiar código de verificación
+            $this->clearDeleteVerificationCode($user);
+        
+            // 📌 Auditoría: baja lógica del animal
+            AnimalDeleteAudit::create([
+                'user_id'         => $user->id,
+                'animal_id'       => $animalSnapshot['id_animal'],
+                'predio_id'       => $animalSnapshot['id_predio'],
+                'action'          => 'delete_animal',
+                'status'          => 'status_changed',
+                'animal_snapshot' => $animalSnapshot, // 👈 estado previo
+                'ip_address'      => $request->ip(),
+                'user_agent'      => $request->userAgent(),
+            ]);
+        
+            DB::commit();
+        
+            return response()->json([
+                'message' => 'Animal dado de baja correctamente'
+            ]);
+        
+        } catch (\Throwable $e) {
+        
+            DB::rollBack();
+        
+            AnimalDeleteAudit::create([
+                'user_id'    => $user->id,
+                'animal_id'  => $request->id_animal,
+                'predio_id'  => null,
+                'action'     => 'delete_animal',
+                'status'     => 'failed',
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]);
+        
+            return response()->json([
+                'message' => 'Error al dar de baja el animal'
+            ], 500);
+        }
+    }
+    /* ======================================================
+     | HELPERS
+     ====================================================== */
+    protected function sendDeleteAnimalVerificationCode(User $user): bool
+    {
+        $code = random_int(10000, 99999);
+        $expiresAt = Carbon::now()->addMinutes(30);
+
+        $html = <<<HTML
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta lang="es">
+    <title>Código de verificación - Moollish</title>
+</head>
+<body style="margin:0; padding:0; font-family: Arial, sans-serif; background-color:#ffffff;">
+    <div style="max-width:600px; margin:0 auto; padding:40px; border:1px solid #e3e3e3; border-radius:8px;">
+
+        <!-- Logo -->
+        <div style="text-align:start;">
+            <img src="https://www.moollish.com/img/moollish.png"
+                 alt="Logo Moollish"
+                 style="height:50px; margin-bottom:20px;">
+        </div>
+
+        <!-- Título -->
+        <h1 style="font-size:24px; color:#333333; border-bottom:1px solid #e3e3e3; padding-bottom:20px;">
+            Código de verificación para eliminar animal
+        </h1>
+
+        <!-- Texto -->
+        <p style="font-size:16px; color:#555555;">
+            Has solicitado la eliminación de un animal registrado en Moollish.
+            Para confirmar esta acción, utiliza el siguiente código:
+        </p>
+
+        <!-- Código -->
+        <div style="
+            margin:30px 0;
+            padding:20px;
+            background-color:#f9f9f9;
+            border:1px dashed #E49B39;
+            border-radius:12px;
+            text-align:center;
+        ">
+            <span style="
+                font-size:32px;
+                font-weight:bold;
+                letter-spacing:6px;
+                color:#333333;
+            ">
+                {$code}
+            </span>
+        </div>
+
+        <!-- Nota -->
+        <p style="font-size:15px; color:#555555;">
+            Este código es válido por <strong>30 minutos</strong>.
+            Si no solicitaste esta acción, ignora este mensaje.
+        </p>
+
+        <!-- Footer -->
+        <p style="font-size:15px; color:#999999; margin-top:40px;">
+            Este es un mensaje automático, por favor no responder este correo.
+        </p>
+
+    </div>
+</body>
+</html>
+HTML;
+
+        try {
+            Resend::emails()->send([
+                'from' => 'Moollish <noreply@moollish.com>',
+                'to' => $user->email,
+                'subject' => 'Código de verificación para eliminar animal',
+                'html' => $html,
+            ]);
+
+            $user->update([
+                'delete_verification_code' => Hash::make($code),
+                'delete_verification_expires_at' => $expiresAt,
+            ]);
+
+            return true;
+        } catch (\Throwable $e) {
+            Log::error('Error enviando código', [
+                'user_id' => $user->id,
+                'error' => $e->getMessage()
+            ]);
+
+            return false;
+        }
+    }
+
+    protected function validateDeleteAnimalCode(User $user, string $code): bool
+    {
+        if (
+            !$user->delete_verification_code ||
+            !$user->delete_verification_expires_at ||
+            Carbon::now()->greaterThan($user->delete_verification_expires_at)
+        ) {
+            $this->clearDeleteVerificationCode($user);
+            return false;
+        }
+
+        return Hash::check($code, $user->delete_verification_code);
+    }
+
+    protected function clearDeleteVerificationCode(User $user): void
+    {
+        $user->update([
+            'delete_verification_code' => null,
+            'delete_verification_expires_at' => null,
+        ]);
+    }
 }

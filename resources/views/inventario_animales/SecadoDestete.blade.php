@@ -161,7 +161,7 @@
                             <div class="form-group ">
                                 <div class="form-group two-column-custom">
                                     <label for="id_animal">Animal <span style="color: red;">*</span></label>
-                                    <input type="hidden" id="id_animal" name="id_animal" required>
+                                    <input type="hidden" id="id_animal" name="id_animal">
                                     <div class="input-dinamico-animal">
                                         <div id="animalSeleccionado"></div>
                                         <button type="button" class="buton-dinamico-animal" data-popup="{{ $nombre ?? 'id_animal' }}">                                            <span class="material-symbols-outlined">search</span>
@@ -337,12 +337,20 @@
 @endsection
 
 @section('scripts')
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="../assets/js/inventario/modalConfirm.js"></script>
     <script>
         var criasData = [];
         $(document).ready(function() {
+            
+           
+            $('#formSubmitButton').on('click', function () {
+            console.log('CLICK submit');
+            $('#mainForm').submit();
+            });
+
 
             function limpiarVacaCampos() {
                 $('#vaca_codigo').val('');
@@ -376,7 +384,7 @@
             }
 
             // Al cambiar la vaca seleccionada
-            $('#id_animal').one('change', function() {
+            $('#id_animal').on('change', function() {
                 var idVaca = $(this).val();
                 if (idVaca) {
                     // Vaciar el select de crias e insertar las opciones fijas
