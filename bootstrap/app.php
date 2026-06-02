@@ -10,16 +10,16 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
-    ->withMiddleware(function () {
-        // No se registra aquí el middleware personalizado
+    ->withMiddleware(function (\Illuminate\Foundation\Configuration\Middleware $middleware) {
+        $middleware->alias([
+            'role'             => \App\Http\Middleware\CheckRole::class,
+            'active.membership' => \App\Http\Middleware\EnsureActiveMembership::class,
+            'marketplace'      => \App\Http\Middleware\CheckMarketplaceAccess::class,
+            'puede.vender'     => \App\Http\Middleware\CheckPuedeVender::class,
+            'solo.moollish'    => \App\Http\Middleware\CheckSoloMoollish::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        // Configura excepciones personalizadas si lo deseas
-    })
-    ->booted(function ($app) {
-        // Una vez que la aplicación se ha iniciado, registra tu middleware
-        $app->router->aliasMiddleware('role', App\Http\Middleware\CheckRole::class);
-        $app->router->aliasMiddleware('active.membership', \App\Http\Middleware\EnsureActiveMembership::class);
-
+        //
     })
     ->create();

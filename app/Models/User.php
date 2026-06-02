@@ -80,4 +80,8 @@ class User extends Authenticatable
         // Permite agregar si la suma de animales en todos sus predios es menor que el máximo permitido
         return $this->animalsCount() < $max;
     }
+    public function perfilMarketplace()
+{
+    return $this->hasOne(\App\Models\Marketplace\MkVendedorPerfil::class, 'user_id');
+}
 }

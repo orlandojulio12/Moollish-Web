@@ -615,12 +615,11 @@ class PartosController extends Controller
      */
    public function import(Request $request)
 {
-    $request->validate([
-        'predio_id' => 'required|exists:predios,id',
-        'file' => 'required|file|mimes:xlsx,xls,csv|max:5120',
-    ]);
-
     try {
+        $request->validate([
+            'predio_id' => 'required|exists:predios,id',
+            'file' => 'required|file|mimes:xlsx,xls,csv|max:5120',
+        ]);
         \Log::info('Inicio importación partos');
 
         $file = $request->file('file');
@@ -681,6 +680,15 @@ class PartosController extends Controller
             'errores' => []
         ]);
 
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        $mensajes = array_merge(...array_values($e->errors()));
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Datos inválidos',
+            'errores' => $mensajes,
+            'duplicados' => [],
+            'exitosos' => 0
+        ], 422);
     } catch (\Exception $e) {
         \Log::error('Error crítico en import: ' . $e->getMessage());
         \Log::error($e->getTraceAsString());

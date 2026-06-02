@@ -767,13 +767,12 @@ Partos
     if (formImport) {
         formImport.addEventListener('submit', async function(e) {
             e.preventDefault();
-            
-            const predioId = document.getElementById('predio_id_import_partos').value;
+
+            const predioId = document.getElementById('predio_id_template_partos').value;
             const file = document.getElementById('file_import_partos').files[0];
             const submitBtn = document.getElementById('submitImportPartos');
             const modalEl = document.getElementById('importPartosModal');
-            const modal = bootstrap.Modal.getInstance(modalEl);
-            
+
             if (!predioId || !file) {
                 Swal.fire({
                     icon: 'warning',
@@ -782,140 +781,107 @@ Partos
                 });
                 return;
             }
-            
+
             submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Importando...';
             submitBtn.disabled = true;
-            
+
             const formData = new FormData(this);
-            
+            formData.append('predio_id', predioId);
+
+            let swalConfig = null;
+            let resetForm = false;
+
             try {
                 const response = await fetch(this.action, {
                     method: 'POST',
-                    headers: {'X-CSRF-TOKEN': '{{ csrf_token() }}'},
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
                     body: formData
                 });
-                
+
                 const result = await response.json();
-                
-                console.log('Resultado completo:', result);
-                
-                // Cerrar modal
-                modal.hide();
-                
-                // CASO 1: TODO EXITOSO
+                console.log('Resultado importación:', result);
+
                 if (result.status === 'success' && result.exitosos > 0) {
-                    Swal.fire({
+                    swalConfig = {
                         icon: 'success',
                         title: '¡Importación exitosa!',
                         html: `<p><strong>${result.message}</strong></p>`,
                         timer: 3000,
                         showConfirmButton: true
-                    });
-                    this.reset();
-                    document.getElementById('filePreviewPartos').style.display = 'none';
-                }
-                // CASO 2: IMPORTACIÓN PARCIAL (algunos exitosos, algunos errores)
-                else if (result.status === 'partial') {
+                    };
+                    resetForm = true;
+                } else if (result.status === 'partial') {
                     let mensaje = `<div style="text-align: left;">
                         <p><strong>✅ ${result.exitosos} parto(s) importados correctamente</strong></p>`;
-                    
                     if (result.duplicados && result.duplicados.length > 0) {
-                        mensaje += `
-                            <hr style="margin: 15px 0;">
-                            <p><strong>ℹ️ Registros duplicados (${result.duplicados.length}):</strong></p>
-                            <ul style="max-height: 150px; overflow-y: auto; text-align: left; color: #856404; background: #fff3cd; padding: 10px; border-radius: 4px; margin: 10px 0;">`;
-                        result.duplicados.forEach(dup => {
-                            mensaje += `<li style="margin: 5px 0;">${dup}</li>`;
-                        });
+                        mensaje += `<hr style="margin:15px 0"><p><strong>ℹ️ Duplicados (${result.duplicados.length}):</strong></p>
+                            <ul style="max-height:150px;overflow-y:auto;color:#856404;background:#fff3cd;padding:10px;border-radius:4px;">`;
+                        result.duplicados.forEach(d => { mensaje += `<li style="margin:5px 0">${d}</li>`; });
                         mensaje += `</ul>`;
                     }
-                    
                     if (result.errores && result.errores.length > 0) {
-                        mensaje += `
-                            <hr style="margin: 15px 0;">
-                            <p><strong>❌ Errores encontrados (${result.errores.length}):</strong></p>
-                            <ul style="max-height: 150px; overflow-y: auto; text-align: left; color: #721c24; background: #f8d7da; padding: 10px; border-radius: 4px; margin: 10px 0;">`;
-                        result.errores.forEach(error => {
-                            mensaje += `<li style="margin: 5px 0;">${error}</li>`;
-                        });
+                        mensaje += `<hr style="margin:15px 0"><p><strong>❌ Errores (${result.errores.length}):</strong></p>
+                            <ul style="max-height:150px;overflow-y:auto;color:#721c24;background:#f8d7da;padding:10px;border-radius:4px;">`;
+                        result.errores.forEach(err => { mensaje += `<li style="margin:5px 0">${err}</li>`; });
                         mensaje += `</ul>`;
                     }
-                    
-                    mensaje += `
-                        <hr style="margin: 15px 0;">
-                        <p style="font-size: 14px; color: #666; margin-top: 15px;"><em>💡 Corrija los errores y vuelva a importar. Los duplicados se omitirán automáticamente.</em></p>
-                    </div>`;
-                    
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Importación parcial',
-                        html: mensaje,
-                        width: 750,
-                        confirmButtonText: 'Entendido'
-                    });
-                }
-                // CASO 3: ERROR TOTAL (0 exitosos)
-                else if (result.status === 'error') {
-                    let mensaje = '<div style="text-align: left;">';
-                    
+                    mensaje += `<hr style="margin:15px 0"><p style="font-size:14px;color:#666"><em>💡 Corrija los errores y vuelva a importar.</em></p></div>`;
+                    swalConfig = { icon: 'warning', title: 'Importación parcial', html: mensaje, width: 750, confirmButtonText: 'Entendido' };
+                } else if (result.status === 'error') {
                     const totalErrores = result.errores ? result.errores.length : 0;
                     const totalDuplicados = result.duplicados ? result.duplicados.length : 0;
-                    
-                    mensaje += `<p><strong>📊 Resumen:</strong></p>
-                                <ul style="list-style: none; padding-left: 0; margin-bottom: 15px; background: #f8f9fa; padding: 10px; border-radius: 4px;">
-                                    <li style="color: #28a745; margin: 3px 0;">✅ Importados: <strong>0</strong></li>
-                                    <li style="color: #dc3545; margin: 3px 0;">❌ Con errores: <strong>${totalErrores}</strong></li>
-                                    <li style="color: #ffc107; margin: 3px 0;">ℹ️ Duplicados: <strong>${totalDuplicados}</strong></li>
-                                </ul>`;
-                    
+                    let mensaje = `<div style="text-align:left">
+                        <p><strong>📊 Resumen:</strong></p>
+                        <ul style="list-style:none;padding-left:0;background:#f8f9fa;padding:10px;border-radius:4px;">
+                            <li style="color:#28a745;margin:3px 0">✅ Importados: <strong>0</strong></li>
+                            <li style="color:#dc3545;margin:3px 0">❌ Con errores: <strong>${totalErrores}</strong></li>
+                            <li style="color:#ffc107;margin:3px 0">ℹ️ Duplicados: <strong>${totalDuplicados}</strong></li>
+                        </ul>`;
                     if (result.errores && result.errores.length > 0) {
-                        mensaje += `
-                            <hr style="margin: 15px 0;">
-                            <p><strong>❌ Errores encontrados:</strong></p>
-                            <ul style="max-height: 200px; overflow-y: auto; text-align: left; color: #721c24; background: #f8d7da; padding: 10px; border-radius: 4px; margin: 10px 0;">`;
-                        result.errores.forEach(error => {
-                            mensaje += `<li style="margin: 5px 0;">${error}</li>`;
-                        });
+                        mensaje += `<hr style="margin:15px 0"><p><strong>❌ Errores encontrados:</strong></p>
+                            <ul style="max-height:200px;overflow-y:auto;color:#721c24;background:#f8d7da;padding:10px;border-radius:4px;">`;
+                        result.errores.forEach(err => { mensaje += `<li style="margin:5px 0">${err}</li>`; });
                         mensaje += `</ul>`;
                     }
-                    
                     if (result.duplicados && result.duplicados.length > 0) {
-                        mensaje += `
-                            <hr style="margin: 15px 0;">
-                            <p><strong>ℹ️ Registros duplicados:</strong></p>
-                            <ul style="max-height: 150px; overflow-y: auto; text-align: left; color: #856404; background: #fff3cd; padding: 10px; border-radius: 4px; margin: 10px 0;">`;
-                        result.duplicados.forEach(dup => {
-                            mensaje += `<li style="margin: 5px 0;">${dup}</li>`;
-                        });
+                        mensaje += `<hr style="margin:15px 0"><p><strong>ℹ️ Registros duplicados:</strong></p>
+                            <ul style="max-height:150px;overflow-y:auto;color:#856404;background:#fff3cd;padding:10px;border-radius:4px;">`;
+                        result.duplicados.forEach(d => { mensaje += `<li style="margin:5px 0">${d}</li>`; });
                         mensaje += `</ul>`;
                     }
-                    
-                    mensaje += `
-                        <hr style="margin: 15px 0;">
-                        <p style="font-size: 14px; color: #666;"><em>💡 Corrija los errores en el archivo y vuelva a intentar.</em></p>
-                    </div>`;
-                    
-                    Swal.fire({
-                        icon: 'error',
-                        title: result.message || 'No se pudo importar ningún parto',
-                        html: mensaje,
-                        width: 750,
-                        confirmButtonText: 'Cerrar'
-                    });
+                    mensaje += `<hr style="margin:15px 0"><p style="font-size:14px;color:#666"><em>💡 Corrija los errores y vuelva a intentar.</em></p></div>`;
+                    swalConfig = { icon: 'error', title: result.message || 'No se pudo importar ningún parto', html: mensaje, width: 750, confirmButtonText: 'Cerrar' };
+                } else {
+                    swalConfig = { icon: 'info', title: 'Procesado', text: result.message || 'Operación completada' };
                 }
-                
+
             } catch (error) {
-                modal.hide();
-                console.error('Error catch:', error);
-                Swal.fire({
+                console.error('Error importación:', error);
+                swalConfig = {
                     icon: 'error',
                     title: 'Error de conexión',
                     text: 'Error al procesar la importación. Por favor, intente nuevamente.'
-                });
+                };
             } finally {
                 submitBtn.innerHTML = '<span class="material-symbols-outlined me-2">upload</span>Importar';
                 submitBtn.disabled = false;
             }
+
+            // Esperar a que la modal termine de cerrarse antes de mostrar SweetAlert
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modalEl.addEventListener('hidden.bs.modal', function handler() {
+                modalEl.removeEventListener('hidden.bs.modal', handler);
+                if (resetForm) {
+                    formImport.reset();
+                    const preview = document.getElementById('filePreviewPartos');
+                    if (preview) preview.style.display = 'none';
+                }
+                if (swalConfig) Swal.fire(swalConfig);
+            });
+            modal.hide();
         });
     }
 
@@ -934,7 +900,10 @@ Partos
             try {
                 const response = await fetch(form.action, {
                     method: 'POST',
-                    headers: {'X-CSRF-TOKEN': '{{ csrf_token() }}'},
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
                     body: formData,
                 });
                 const result = await response.json();

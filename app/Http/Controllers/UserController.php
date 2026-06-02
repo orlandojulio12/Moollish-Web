@@ -523,4 +523,41 @@ public function updateAjax(Request $request, $id) //: RedirectResponse -> Ya no 
     }
 }
 
+    // ==========================================
+    // MARKETPLACE UPGRADES (admin)
+    // ==========================================
+    public function upgrades()
+    {
+        $solicitudes = \App\Models\Marketplace\MkSolicitudUpgrade::with('user')
+            ->orderByRaw("FIELD(estado, 'pendiente', 'aprobado', 'rechazado')")
+            ->latest()
+            ->get();
+
+        return view('admin.marketplace.upgrades', compact('solicitudes'));
+    }
+
+    public function responderUpgrade(Request $request, $id)
+    {
+        $solicitud = \App\Models\Marketplace\MkSolicitudUpgrade::findOrFail($id);
+        $decision  = $request->input('decision'); // aprobado | rechazado
+
+        $solicitud->update([
+            'estado'         => $decision,
+            'respondido_por' => auth()->id(),
+            'respondido_at'  => now(),
+        ]);
+
+        if ($decision === 'aprobado') {
+            $solicitud->user->update([
+                'id_rol' => $solicitud->rol_solicitado,
+            ]);
+        }
+
+        $msg = $decision === 'aprobado'
+            ? 'Solicitud aprobada. El usuario ahora es proveedor.'
+            : 'Solicitud rechazada.';
+
+        return back()->with('success', $msg);
+    }
+
 }

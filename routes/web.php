@@ -1,4 +1,5 @@
 <?php
+require __DIR__.'/marketplace.php';
 
 use App\Http\Controllers\AreaController;
 use App\Http\Controllers\CarazterizacionRiesgoController;
@@ -775,5 +776,16 @@ Route::post('/pesaje', [App\Http\Controllers\PesajeAnimalController::class, 'sto
 
 // Ruta para recibir animales creados offline y sincronizarlos
 Route::post('/animal/store/offline', [AnimalesController::class, 'storeOffline'])->name('animal.store.offline');
+
+// ── Admin: solicitudes de upgrade marketplace ────────────────────────────────
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/admin/marketplace/upgrades',
+        [UserController::class, 'upgrades'])
+        ->name('admin.upgrades');
+
+    Route::post('/admin/marketplace/upgrades/{id}/responder',
+        [UserController::class, 'responderUpgrade'])
+        ->name('admin.upgrades.responder');
+});
 
 

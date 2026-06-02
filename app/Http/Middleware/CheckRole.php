@@ -9,34 +9,48 @@ use Illuminate\Support\Facades\Auth;
 class CheckRole
 {
     /**
-     * Maneja la petición entrante.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
-     * @param  string  $role  Rol esperado (ej. "admin", "propietario", etc.)
-     * @return mixed
+     * Mapa de alias → id_rol en la BD
+     * 1 admin | 2 encuestador | 3 propietario | 4 veterinario
+     * 5 comprador | 6 proveedor
      */
-    public function handle(Request $request, Closure $next, $role)
+    protected array $rolesMap = [
+        'admin'        => 1,
+        'encuestador'  => 2,
+        'propietario'  => 3,
+        'veterinario'  => 4,
+        'comprador'    => 5,
+        'proveedor'    => 6,
+    ];
+
+    public function handle(Request $request, Closure $next, string ...$roles): mixed
     {
         $user = Auth::user();
+
         if (!$user) {
             return redirect()->route('login');
         }
 
-        // Mapeo de alias de rol a id_rol en la base de datos.
-        $rolesMap = [
-            'admin'        => 1,
-            'encuestador'  => 2,
-            'propietario'  => 3,
-        ];
+        // Convertir alias a ids
+        $rolesPermitidos = collect($roles)
+            ->map(fn($alias) => $this->rolesMap[$alias] ?? null)
+            ->filter()
+            ->values()
+            ->toArray();
 
-        if (!isset($rolesMap[$role])) {
-            abort(403, 'Rol no definido.');
+        if (empty($rolesPermitidos)) {
+            abort(403, 'Roles no definidos.');
         }
 
-        // Usamos $user->id_rol (ya que la columna es id_rol)
-        if ($user->id_rol != $rolesMap[$role]) {
-            abort(403, 'Acción no autorizada.');
+        if (!in_array($user->id_rol, $rolesPermitidos)) {
+            // Si es una petición AJAX devolver JSON
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'No autorizado.'], 403);
+            }
+
+            // Si tiene sesión activa redirigir con mensaje
+            return redirect()
+                ->route('dashboard')
+                ->with('error', 'No tienes permiso para acceder a esa sección.');
         }
 
         return $next($request);

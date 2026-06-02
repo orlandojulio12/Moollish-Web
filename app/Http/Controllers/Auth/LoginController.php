@@ -59,17 +59,19 @@ class LoginController extends Controller
 
     protected function authenticated(Request $request, $user)
     {
-        // Si el usuario es "encuestador", redirigir a dashboard u otra ruta.
         if ($user->role->name == 'admin') {
             return redirect()->route('dashboard');
         }
 
-        // Si el usuario no tiene membresía activa, redirigir a /membresias para que pueda renovarla o activarla.
+        // Viene del botón "Ingresar" del marketplace
+        if ($request->input('from') === 'marketplace') {
+            return redirect()->route('marketplace.panel');
+        }
+
         if (!$user->membership || !$user->membership->isActive()) {
             return redirect()->route('membresias');
         }
 
-        // Si ya tiene membresía activa, redirigir a la ruta principal que desees (por ejemplo, /home)
         return redirect()->route('inicio');
     }
 

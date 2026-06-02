@@ -553,6 +553,7 @@
             <div class="form-login">
                 <form method="POST" action="{{ route('login') }}">
                     @csrf
+                    <input type="hidden" name="from" value="{{ request('from') }}">
                     @if (session('error'))
                         <div class="alert alert-danger">
                             {{ session('error') }}
@@ -656,14 +657,95 @@
                     <div class="main-form" style="margin: 20px 0;">
                         <h1 class="moollish-span">Regístrate</h1>
                         <br>
-                        <div class="input-signup">
-                            <label for="id_rol">¿Qué tipo de usuario eres?</label>
-                            <select name="id_rol" id="id_rol" required class="form-input">
-                                <option value="3">Propietario</option>
-                                <option value="2">Encuestador</option>
-                                <option value="4">Veterinario</option>
-                                <option value="5">Técnico</option>
-                            </select>
+                        <input type="hidden" name="id_rol" id="registro_rol" value="5">
+
+                        <div x-data="{ rolSeleccionado: 'comprador' }" class="mb-4">
+
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">
+                                ¿Cómo vas a usar Moollish Marketplace?
+                            </label>
+
+                            {{-- OPCIÓN COMPRADOR --}}
+                            <div @click="rolSeleccionado = 'comprador'; document.getElementById('registro_rol').value = 5"
+                                 :class="rolSeleccionado === 'comprador'
+                                     ? 'border-2 bg-amber-50'
+                                     : 'border border-gray-200 hover:border-amber-300'"
+                                 class="cursor-pointer rounded-xl p-4 mb-3 transition-all"
+                                 :style="rolSeleccionado === 'comprador' ? 'border-color:#e49b39' : ''">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                                         :style="rolSeleccionado === 'comprador'
+                                             ? 'background-color:#e49b39'
+                                             : 'background-color:#f3f4f6'">
+                                        <span class="text-lg">🛒</span>
+                                    </div>
+                                    <div>
+                                        <p class="font-semibold text-gray-900 text-sm">Comprador</p>
+                                        <p class="text-xs text-gray-500 mt-0.5 leading-relaxed">
+                                            Explora y compra ganado, lotes e insumos ganaderos.
+                                            Gratis, sin costo.
+                                        </p>
+                                    </div>
+                                    <div class="ml-auto flex-shrink-0">
+                                        <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center"
+                                             :style="rolSeleccionado === 'comprador'
+                                                 ? 'border-color:#e49b39; background:#e49b39'
+                                                 : 'border-color:#d1d5db'">
+                                            <div x-show="rolSeleccionado === 'comprador'"
+                                                 class="w-2 h-2 rounded-full bg-white"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- OPCIÓN PROVEEDOR --}}
+                            <div @click="rolSeleccionado = 'proveedor'; document.getElementById('registro_rol').value = 6"
+                                 :class="rolSeleccionado === 'proveedor'
+                                     ? 'border-2 bg-amber-50'
+                                     : 'border border-gray-200 hover:border-amber-300'"
+                                 class="cursor-pointer rounded-xl p-4 transition-all"
+                                 :style="rolSeleccionado === 'proveedor' ? 'border-color:#e49b39' : ''">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                                         :style="rolSeleccionado === 'proveedor'
+                                             ? 'background-color:#e49b39'
+                                             : 'background-color:#f3f4f6'">
+                                        <span class="text-lg">🐄</span>
+                                    </div>
+                                    <div>
+                                        <p class="font-semibold text-gray-900 text-sm">Proveedor</p>
+                                        <p class="text-xs text-gray-500 mt-0.5 leading-relaxed">
+                                            Vende ganado, lotes e insumos. Publica tus animales
+                                            y llega a compradores de todo el país.
+                                        </p>
+                                        <span class="inline-block mt-1 text-xs font-semibold px-2 py-0.5
+                                                     rounded-full bg-green-100 text-green-700">
+                                            Gratis para empezar
+                                        </span>
+                                    </div>
+                                    <div class="ml-auto flex-shrink-0">
+                                        <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center"
+                                             :style="rolSeleccionado === 'proveedor'
+                                                 ? 'border-color:#e49b39; background:#e49b39'
+                                                 : 'border-color:#d1d5db'">
+                                            <div x-show="rolSeleccionado === 'proveedor'"
+                                                 class="w-2 h-2 rounded-full bg-white"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- NOTA MOOLLISH --}}
+                            <div class="mt-3 flex items-start gap-2 bg-gray-50 rounded-lg p-3">
+                                <span class="text-gray-400 text-xs mt-0.5">ℹ️</span>
+                                <p class="text-xs text-gray-500 leading-relaxed">
+                                    ¿Eres ganadero y quieres gestionar tu finca completa?
+                                    La membresía <strong class="text-gray-700">Moollish Propietario</strong>
+                                    incluye todo el sistema de gestión más el marketplace.
+                                    <a href="#" class="underline" style="color:#e49b39">Más información</a>
+                                </p>
+                            </div>
+
                         </div>
                         <div class="input-signup">
                             <label for="tipo_documento">Tipo y numero de documento</label>
