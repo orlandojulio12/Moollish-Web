@@ -7,7 +7,11 @@
       "Bash(cd \"C:\\\\Users\\\\Usuario\\\\Documents\\\\GitHub\\\\Moollish-Web\" && php artisan route:list 2>&1 | grep \"animales-por-predio\\\\|ganancia-peso\")",
       "Bash(cd \"C:\\\\Users\\\\Usuario\\\\Documents\\\\GitHub\\\\Moollish-Web\" && php -l app/Exports/GananciaPesoExport.php)",
       "Bash(python3:*)",
-      "Bash(php:*)"
+      "Bash(php:*)",
+      "Bash(Get-ChildItem -Recurse -Filter \"*partos*\" \"C:\\\\Users\\\\Usuario\\\\Documents\\\\GitHub\\\\Moollish-Web\\\\resources\\\\views\")",
+      "Bash(Select-Object FullName)",
+      "PowerShell(\\(Get-Content \"C:\\\\Users\\\\Usuario\\\\Documents\\\\GitHub\\\\Moollish-Web\\\\resources\\\\views\\\\inventario_animales\\\\index.blade.php\" | Measure-Object -Line\\).Lines)",
+      "Bash(Get-Content *)"
     ]
   }
 }

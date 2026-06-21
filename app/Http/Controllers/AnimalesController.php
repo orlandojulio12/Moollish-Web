@@ -922,7 +922,10 @@ if ($animal->madreRelacion) {
 
             // Convertir el valor del checkbox a booleano
             $request->merge([
-                'isComprado' => $request->has('isComprado') ? true : false,
+                'isComprado' => filter_var(
+                    $request->input('isComprado'),
+                    FILTER_VALIDATE_BOOLEAN
+                ),
             ]);
 
             if (!Auth::user()->canAddAnimal()) {
@@ -969,9 +972,9 @@ if ($animal->madreRelacion) {
                 'crias.*.color_cria' => 'nullable|string|max:255',
                 'crias.*.identificacion_electronica_cria' => 'nullable|numeric',
                 'crias.*.peso_al_nacer' => 'nullable|numeric',
-                'isComprado' => 'nullable|boolean',
-                'proveedor' => 'required_if:isComprado,true|nullable|string|max:255',
-                'fechaCompra' => 'required_if:isComprado,true|nullable|date',
+               'isComprado'   => 'boolean',
+                'proveedor'    => 'required_if:isComprado,true|nullable|string|max:255',
+                'fechaCompra'  => 'required_if:isComprado,true|nullable|date',
                 'precioCompra' => 'required_if:isComprado,true|nullable|numeric|min:0',
             ]);
 

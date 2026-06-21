@@ -768,12 +768,12 @@ Partos
         formImport.addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const predioId = document.getElementById('predio_id_import_partos').value;
+            const predioId = document.getElementById('predio_id_template_partos').value;
             const file = document.getElementById('file_import_partos').files[0];
             const submitBtn = document.getElementById('submitImportPartos');
             const modalEl = document.getElementById('importPartosModal');
             const modal = bootstrap.Modal.getInstance(modalEl);
-            
+
             if (!predioId || !file) {
                 Swal.fire({
                     icon: 'warning',
@@ -782,11 +782,12 @@ Partos
                 });
                 return;
             }
-            
+
             submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Importando...';
             submitBtn.disabled = true;
-            
+
             const formData = new FormData(this);
+            formData.append('predio_id', predioId);
             
             try {
                 const response = await fetch(this.action, {

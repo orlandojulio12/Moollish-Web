@@ -1282,6 +1282,42 @@ ficha animales
 <script>
 
 document.addEventListener('DOMContentLoaded', function() {
+
+    @if(session('success'))
+    Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'success',
+        title: '{{ addslashes(session('success')) }}',
+        showConfirmButton: false,
+        timer: 4000
+    });
+    @endif
+
+    @if(session('error'))
+    Swal.fire({
+        icon: 'error',
+        title: 'Error en la importación',
+        text: '{{ addslashes(session('error')) }}'
+    });
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('importModal')).show();
+    @endif
+
+    @if(session('warning'))
+    (function() {
+        const errores = {!! json_encode(session('errores', [])) !!};
+        let lista = errores.map(e => `<li style="margin:4px 0">${e}</li>`).join('');
+        Swal.fire({
+            icon: 'warning',
+            title: '{{ addslashes(session('warning')) }}',
+            html: `<ul style="text-align:left;max-height:300px;overflow-y:auto;padding:0 10px">${lista}</ul>`,
+            width: 700,
+            confirmButtonText: 'Entendido'
+        });
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('importModal')).show();
+    })();
+    @endif
+
     // Abrir modal de importación
     document.getElementById('openImportModal').addEventListener('click', function() {
         const importModal = new bootstrap.Modal(document.getElementById('importModal'));
